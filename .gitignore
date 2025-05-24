@@ -1,48 +1,5 @@
-# Node.js dependencies
 node_modules
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
+.env.env
 
-# Environment variables
-.env
-.env.*
-
-# Logs
-logs/
-*.log
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Build output
-dist/
-build/
-coverage/
-.vitest/
-
-# Docker
-docker-compose.override.yml
-docker-compose.dev.yml
-.docker/
-*.local
-
-# Editor directories and files
-.vscode/
-.idea/
-*.sublime-workspace
-*.sublime-project
-
-# Misc
-*.tgz
-
-# Optional npm cache directory
-.npm/
-
-# Vitest cache
-node_modules/.vitest/
 .vercel
+dist
