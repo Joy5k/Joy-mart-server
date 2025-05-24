@@ -7,21 +7,24 @@ import { User } from "../user/user.model";
 
 const createProfile = async (payload: IProfile) => {
   const session = await mongoose.startSession();
-      // Check existence within transaction to prevent race conditions
-    const isExistsUser = await ProfileModel.findOne({ email: payload.email })
-    if (isExistsUser) {
-      throw new AppError(httpStatus.CONFLICT, 'This user already exists');
-    }
+  // Check existence within transaction to prevent race conditions
+  const isExistsUser = await ProfileModel.findOne({ email: payload.email });
+  if (isExistsUser) {
+    throw new AppError(httpStatus.CONFLICT, "This user already exists");
+  }
 
   try {
     session.startTransaction();
 
-
-
     // Create profile
-    const createProfileResult = await ProfileModel.create([payload], { session });
+    const createProfileResult = await ProfileModel.create([payload], {
+      session,
+    });
     if (!createProfileResult || createProfileResult.length === 0) {
-      throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, 'Failed to create profile');
+      throw new AppError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to create profile",
+      );
     }
 
     // Create user - consider hashing password first!
@@ -29,13 +32,13 @@ const createProfile = async (payload: IProfile) => {
       email: payload.email,
       password: payload.password, // WARNING: Password should be hashed!
       needsPasswordChange: true,
-      role: 'user',
-      status: 'in-progress',
+      role: "user",
+      status: "in-progress",
       isDeleted: false,
     };
 
     await User.create([userPayload], { session });
-    
+
     await session.commitTransaction();
     await session.endSession();
     return createProfileResult;
@@ -43,10 +46,8 @@ const createProfile = async (payload: IProfile) => {
     await session.abortTransaction();
     await session.endSession();
     // Log the actual error for debugging
-    console.error('Profile creation failed:', error);
-  
-    
-  } 
+    console.error("Profile creation failed:", error);
+  }
 };
 
 export const ProfileServices = {

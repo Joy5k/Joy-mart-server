@@ -45,3 +45,4 @@ docker-compose.dev.yml
 
 # Vitest cache
 node_modules/.vitest/
+.vercel

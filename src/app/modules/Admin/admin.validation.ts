@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { BloodGroup, Gender } from './admin.constant';
+import { z } from "zod";
+import { BloodGroup, Gender } from "./admin.constant";
 
 const createUserNameValidationSchema = z.object({
   firstName: z.string().min(1).max(20),

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
-import bcrypt from 'bcrypt';
-import { Schema, model } from 'mongoose';
-import config from '../../config';
-import { TUser, UserModel } from './user.interface';
-import { UserStatus } from './user.constant';
+import bcrypt from "bcrypt";
+import { Schema, model } from "mongoose";
+import config from "../../config";
+import { TUser, UserModel } from "./user.interface";
+import { UserStatus } from "./user.constant";
 const userSchema = new Schema<TUser, UserModel>(
   {
     email: {
@@ -25,12 +25,12 @@ const userSchema = new Schema<TUser, UserModel>(
     },
     role: {
       type: String,
-      enum: ['superAdmin', 'admin','user','seller'],
+      enum: ["superAdmin", "admin", "user", "seller"],
     },
     status: {
       type: String,
       enum: UserStatus,
-      default: 'in-progress',
+      default: "in-progress",
     },
     isDeleted: {
       type: Boolean,
@@ -42,7 +42,7 @@ const userSchema = new Schema<TUser, UserModel>(
   },
 );
 
-userSchema.pre('save', async function (next) {
+userSchema.pre("save", async function (next) {
   // eslint-disable-next-line @typescript-eslint/no-this-alias
   const user = this; // doc
   // hashing password and save into DB
@@ -56,13 +56,13 @@ userSchema.pre('save', async function (next) {
 });
 
 // set '' after saving password
-userSchema.post('save', function (doc, next) {
-  doc.password = '';
+userSchema.post("save", function (doc, next) {
+  doc.password = "";
   next();
 });
 
 userSchema.statics.isUserExistsByEmail = async function (email: string) {
-  return await User.findOne({ email }).select('+password');
+  return await User.findOne({ email }).select("+password");
 };
 
 userSchema.statics.isPasswordMatched = async function (
@@ -81,4 +81,4 @@ userSchema.statics.isJWTIssuedBeforePasswordChanged = function (
   return passwordChangedTime > jwtIssuedTimestamp;
 };
 
-export const User = model<TUser, UserModel>('User', userSchema);
+export const User = model<TUser, UserModel>("User", userSchema);
