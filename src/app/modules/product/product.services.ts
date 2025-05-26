@@ -2,6 +2,8 @@ import httpStatus from "http-status";
 import AppError from "../../errors/AppError";
 import { ProductModel } from "./product.model";
 import { IProduct } from "./product.interface";
+import QueryBuilder from "../../builder/QueryBuilder";
+import { productSearchableFiled } from "./product.constant";
 
 
 const createProduct=async (productData:IProduct) => {
@@ -18,30 +20,27 @@ const getProductById=async (productId:string) => {
     }
     return result;
 }
-const getAllProducts=async (filters:any) => {
-    const { searchTerm, ...filterData } = filters;
-    const query: any = { ...filterData };
-    if (searchTerm) {
-        query.$or = [
-            { title: { $regex: searchTerm, $options: "i" } },
-            { shortTitle: { $regex: searchTerm, $options: "i" } },
-            { description: { $regex: searchTerm, $options: "i" } },
-            { shortDescription: { $regex: searchTerm, $options: "i" } },
-            { category: { $regex: searchTerm, $options: "i" } },
-            { subCategory: { $regex: searchTerm, $options: "i" } },
-            { tags: { $regex: searchTerm, $options: "i" } },
-        ];
-    }
-    const result = await ProductModel.find(query)
-        .populate("category", "name")
-        .populate("subCategory", "name")
-        .populate("tags", "name")
-        .sort({ createdAt: -1 });
-    if (!result || result.length === 0) {
-        throw new AppError(httpStatus.NOT_FOUND, "No products found");
-    }
-    return result;
-}
+const getAllProducts = async (query: Record<string, unknown>) => {
+  const productSearchableFields = ['title', 'shortDescription', 'description', ]; 
+
+  const productQuery = new QueryBuilder(
+    ProductModel.find(),
+    query
+  )
+    .search(productSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const result = await productQuery.modelQuery;
+  const meta = await productQuery.countTotal();
+  
+  return {
+    meta,
+    result
+  };
+};
 
 
 const updateProduct=async (productId:string,productData:IProduct) => {

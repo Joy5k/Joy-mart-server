@@ -24,9 +24,9 @@ export interface IProduct {
   };
 
   // Categorization
-  category: string; // Main category (should be a Mongoose ObjectId reference)
-  subCategory?: string; // Sub-category (e.g., "T-Shirts")
-  tags?: string[]; // Searchable keywords
+  category: ObjectId; // Main category (should be a Mongoose ObjectId reference)
+  subCategory?: ObjectId; // Sub-category (should be a Mongoose ObjectId reference)
+  tags?: ObjectId[]; // Searchable keywords (should be an array of Mongoose ObjectId references)
 
   // Media
   images: string[]; // Array of image URLs

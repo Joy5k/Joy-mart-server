@@ -57,3 +57,4 @@ build/
 # Others
 *.tgz
 .idea/
+.vercel

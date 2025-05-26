@@ -9,35 +9,51 @@ class QueryBuilder<T> {
     this.query = query;
   }
 
-  search(searchableFields: string[]) {
-    const searchTerm = this?.query?.searchTerm;
-    if (searchTerm) {
-      this.modelQuery = this.modelQuery.find({
-        $or: searchableFields.map(
-          (field) =>
-            ({
-              [field]: { $regex: searchTerm, $options: "i" },
-            }) as FilterQuery<T>,
-        ),
-      });
-    }
+search(searchableFields: string[]) {
+  const searchTerm = this.query?.searchTerm as string;
 
-    return this;
+  if (searchTerm && searchableFields.length > 0) {
+    const regex = new RegExp(searchTerm, "i");
+
+    const searchConditions = searchableFields.map(
+      (field) =>
+        ({
+          [field]: { $regex: regex },
+        }) as FilterQuery<T>
+    );
+
+    this.modelQuery = this.modelQuery.find({ $or: searchConditions });
   }
+
+  return this;
+}
+
 
   filter() {
     const queryObj = { ...this.query }; // copy
 
     // Filtering
     const excludeFields = ["searchTerm", "sort", "limit", "page", "fields"];
-
     excludeFields.forEach((el) => delete queryObj[el]);
+
+    // Handle price range filtering
+    if (queryObj.minPrice || queryObj.maxPrice) {
+      const priceFilter: Record<string, number> = {};
+      if (queryObj.minPrice) {
+        priceFilter.$gte = Number(queryObj.minPrice);
+      }
+      if (queryObj.maxPrice) {
+        priceFilter.$lte = Number(queryObj.maxPrice);
+      }
+      queryObj.price = priceFilter;
+      delete queryObj.minPrice;
+      delete queryObj.maxPrice;
+    }
 
     this.modelQuery = this.modelQuery.find(queryObj as FilterQuery<T>);
 
     return this;
   }
-
   sort() {
     const sort =
       (this?.query?.sort as string)?.split(",")?.join(" ") || "-createdAt";
