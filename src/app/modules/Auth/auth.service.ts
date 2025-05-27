@@ -42,7 +42,7 @@ const registerUserIntoDB = async (payload: TRegisterUser) => {
 const loginUser = async (payload: TLoginUser) => {
   // checking if the user is exist
   const user = await User.isUserExistsByEmail(payload.email);
-  if (!user._id) {
+  if (!user?._id) {
     throw new AppError(httpStatus.NOT_FOUND, "This user is not found !");
   }
   // checking if the user is already deleted

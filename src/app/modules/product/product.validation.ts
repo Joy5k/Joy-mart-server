@@ -30,8 +30,6 @@ const createProductValidation=z.object({
                 category: z.string({
                     required_error: "Product category is required",
                 }).min(1, "Product category cannot be empty"),
-                subCategory: z.string().optional(),
-                tags: z.array(z.string()).optional(),
                 images: z.array(z.string()).nonempty("At least one image is required"),
                 thumbnail: z.string().optional(),
                 videoUrl: z.string().optional(),
@@ -69,8 +67,6 @@ const updateProductValidation = z.object({
             height: z.number().min(0).optional(),
         }).optional(),
         category: z.string().min(1).optional(),
-        subCategory: z.string().optional(),
-        tags: z.array(z.string()).optional(),
         images: z.array(z.string()).optional(),
         thumbnail: z.string().optional(),
         videoUrl: z.string().optional(),

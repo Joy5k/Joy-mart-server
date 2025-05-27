@@ -10,7 +10,7 @@ const router=express.Router();
 
 router.post('/create',auth(USER_ROLE.admin,USER_ROLE.superAdmin),validateRequest(categoryValidationSchema.create),categoryController.createCategoryIntoDB)
 
-router.get('/',auth(USER_ROLE.admin,USER_ROLE.superAdmin,USER_ROLE.seller),validateRequest(categoryValidationSchema.create),categoryController.getAllCategoriesFromDB)
+router.get('/',auth(USER_ROLE.admin,USER_ROLE.superAdmin,USER_ROLE.seller),categoryController.getAllCategoriesFromDB)
 
 router.get('get/:id',auth(USER_ROLE.admin,USER_ROLE.superAdmin),validateRequest(categoryValidationSchema.create),categoryController.getSingleCategoryFromDB)
 

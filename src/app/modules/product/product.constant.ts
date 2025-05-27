@@ -1,1 +1,1 @@
-export const productSearchableFiled = ['title', 'shortDistription', 'description', 'tags'];
+export const productSearchableFiled = ['title', 'shortDistription', 'description'];

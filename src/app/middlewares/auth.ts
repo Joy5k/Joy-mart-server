@@ -10,10 +10,9 @@ import catchAsync from "../utils/catchAsync";
 const auth = (...requiredRoles: TUserRole[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const token = req.headers.authorization;
-
     // checking if the token is missing
     if (!token) {
-      throw new AppError(httpStatus.UNAUTHORIZED, "You are not authorized!");
+      throw new AppError(httpStatus.UNAUTHORIZED, "You are not authorized! Please login first.");
     }
     let decoded;
     try {
@@ -61,7 +60,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
     if (requiredRoles && !requiredRoles.includes(role)) {
       throw new AppError(
         httpStatus.UNAUTHORIZED,
-        "You are not authorized  hi!",
+        "You are not authorized or you are not allowed to access this resource!",
       );
     }
 

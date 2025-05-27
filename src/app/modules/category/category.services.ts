@@ -14,8 +14,6 @@ const createCatergory = async (category:ICategory) => {
 
 const getAllCategories = async () => {
     const result = await Category.find({ isDeleted: false })
-        .populate("parentCategoryId")
-        .sort({ createdAt: -1 });
     if (!result || result.length === 0) {   
         throw new AppError(httpStatus.NOT_FOUND, "No categories found");
     }
@@ -23,7 +21,7 @@ const getAllCategories = async () => {
 }
 
 const getSingleCategory = async (categoryId: string) => {
-    const result = await Category.findById(categoryId).populate("parentCategoryId");
+    const result = await Category.findById(categoryId)
     if (!result) {
         throw new AppError(httpStatus.NOT_FOUND, "Category not found");
     }

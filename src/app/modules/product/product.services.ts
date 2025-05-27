@@ -35,7 +35,7 @@ const getAllProducts = async (query: Record<string, unknown>) => {
 
   const result = await productQuery.modelQuery;
   const meta = await productQuery.countTotal();
-  
+  console.log(productQuery)
   return {
     meta,
     result
@@ -43,8 +43,8 @@ const getAllProducts = async (query: Record<string, unknown>) => {
 };
 
 
-const updateProduct=async (productId:string,productData:IProduct) => {
-    const result = await ProductModel.findByIdAndUpdate(productId, productData, {
+const updateProduct=async (_id:string,productData:IProduct) => {
+    const result = await ProductModel.findByIdAndUpdate(_id, productData, {
         new: true,
         runValidators: true,
     });
@@ -53,8 +53,8 @@ const updateProduct=async (productId:string,productData:IProduct) => {
     }
     return result;
 }
-const deleteProduct=async (productId:string) => {
-    const result = await ProductModel.findByIdAndDelete(productId);
+const deleteProduct=async (_id:string) => {
+    const result = await ProductModel.findByIdAndDelete(_id);
     if (!result) {
         throw new AppError(httpStatus.NOT_FOUND, "Product not found");
     }

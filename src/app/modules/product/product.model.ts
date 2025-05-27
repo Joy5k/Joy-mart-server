@@ -19,8 +19,6 @@ const productModelSchema = new Schema({
     height: { type: Number, default: 0 },
   },
   category: { type: Schema.Types.ObjectId, ref: "Category", required: true },
-  subCategory: { type: Schema.Types.ObjectId, ref: "SubCategory", default: "" },
-  tags: [{ type: Schema.Types.ObjectId, ref: "Tag" }],
   images: [{ type: String }],
   thumbnail: { type: String, default: "" },
   videoUrl: { type: String, default: "" },
