@@ -4,12 +4,10 @@
   "description": "```",
   "main": "8.2.js",
   "json.schemaDownload.enable": false,
-
   "scripts": {
     "start:prod": "node ./dist/server.js",
     "build": "tsc",
     "start": "tsx watch src/server.ts",
-
     "prettier": "prettier --ignore-path .gitignore --write \"./src/**/*.+(js|ts|json)\"",
     "prettier:fix": "npx prettier --write src",
     "lint:fix": "npx eslint src --fix",

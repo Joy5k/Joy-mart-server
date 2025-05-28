@@ -11,4 +11,5 @@ export interface IProfile {
   country?: string;
   zipCode?: string;
   dateOfBirth?: string;
+  isDeleted?: boolean;
 }

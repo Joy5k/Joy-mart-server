@@ -47,6 +47,10 @@ export const ProfileSchema = new Schema<IProfile>({
   dateOfBirth: {
     type: String,
   },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  }
 });
 ProfileSchema.pre("save", async function (next) {
   // eslint-disable-next-line @typescript-eslint/no-this-alias
