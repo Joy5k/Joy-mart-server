@@ -5,6 +5,7 @@ import { UserRoutes } from "../modules/user/user.route";
 import { profileRouter } from "../modules/profile/profile.route";
 import { ProductRoute } from "../modules/product/product.route";
 import { CategoryRoutes } from "../modules/category/category.route";
+import { SubscribeRoutes } from "../modules/subscribe/subscribe.rouets";
 
 const router = Router();
 
@@ -34,6 +35,10 @@ const moduleRoutes = [
   {
     path:"/categories",
     route:CategoryRoutes
+  },
+  {
+    path:'/subscribe',
+    route:SubscribeRoutes
   }
 ];
 
