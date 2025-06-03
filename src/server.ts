@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { Server } from "http";
 import mongoose from "mongoose";
 import app from "./mainApp";
@@ -9,14 +8,16 @@ let server: Server;
 
 async function main() {
   try {
-    await mongoose.connect(config.database_url as string);
+    await mongoose.connect(config.database_url as string, {
+    });
 
     seedSuperAdmin();
+
     server = app.listen(config.port, () => {
-      console.log(`app is listening on port ${config.port}`);
+      console.log(`✅ App is listening on port ${config.port}`);
     });
   } catch (err) {
-    console.log(err);
+    console.log("❌ Database connection failed:", err);
   }
 }
 
@@ -28,8 +29,9 @@ process.on("unhandledRejection", () => {
     server.close(() => {
       process.exit(1);
     });
+  } else {
+    process.exit(1);
   }
-  process.exit(1);
 });
 
 process.on("uncaughtException", () => {

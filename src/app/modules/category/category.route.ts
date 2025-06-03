@@ -12,9 +12,9 @@ router.post('/create',auth(USER_ROLE.admin,USER_ROLE.superAdmin),validateRequest
 
 router.get('/',auth(USER_ROLE.admin,USER_ROLE.superAdmin,USER_ROLE.seller),categoryController.getAllCategoriesFromDB)
 
-router.get('get/:id',auth(USER_ROLE.admin,USER_ROLE.superAdmin),validateRequest(categoryValidationSchema.create),categoryController.getSingleCategoryFromDB)
-
-router.delete('delete/:id',auth(USER_ROLE.admin,USER_ROLE.superAdmin),validateRequest(categoryValidationSchema.create),categoryController.deleteCategoryFromDB)
+router.get('/get/:id',auth(USER_ROLE.admin,USER_ROLE.superAdmin),validateRequest(categoryValidationSchema.create),categoryController.getSingleCategoryFromDB)
+router.put('/update/:id',auth(USER_ROLE.superAdmin,USER_ROLE.admin),validateRequest(categoryValidationSchema.update),categoryController.updateCategroyIntoDB)
+router.delete('/delete/:id',auth(USER_ROLE.admin,USER_ROLE.superAdmin),categoryController.deleteCategoryFromDB)
 
 
 export const CategoryRoutes = router;

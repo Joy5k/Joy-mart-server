@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import AppError from "../../errors/AppError";
 import { Category } from "./category.model";
 import { ICategory } from "./category.interface";
+import QueryBuilder from "../../builder/QueryBuilder";
 
 
 const createCatergory = async (category:ICategory) => {
@@ -12,12 +13,31 @@ const createCatergory = async (category:ICategory) => {
     return result;
 }
 
-const getAllCategories = async () => {
-    const result = await Category.find({ isDeleted: false })
-    if (!result || result.length === 0) {   
-        throw new AppError(httpStatus.NOT_FOUND, "No categories found");
-    }
-    return result;
+const getAllCategories = async (query: Record<string, unknown>) => {
+      const categorySearchAbleField = [ 'description', 'categoryName', ]; 
+
+  const categoryQuery = new QueryBuilder(
+    Category.find(),
+    query
+  ) .search(categorySearchAbleField)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+     const result = await categoryQuery.modelQuery;
+//   const meta = await categoryQuery.countTotal();
+  return result
+    
+  
+}
+const updateCategory=async(_id:string,payload:ICategory)=>{
+    console.log(_id,payload)
+    const result=await Category.findByIdAndUpdate(_id,payload,{
+        new:true,
+    
+    })
+    return result
 }
 
 const getSingleCategory = async (categoryId: string) => {
@@ -28,8 +48,8 @@ const getSingleCategory = async (categoryId: string) => {
     return result;
 }
 
-const deleteCategory= async (categoryId: string) => {
-    const result = await Category.findByIdAndUpdate(categoryId, { isDeleted: true }, { new: true });
+const deleteCategory= async (_id: string) => {
+    const result = await Category.deleteOne({_id});
     if (!result) {
         throw new AppError(httpStatus.NOT_FOUND, "Category not found");
     }
@@ -40,5 +60,6 @@ export const categoryServices = {
     createCatergory,
     getAllCategories,
     getSingleCategory,
+    updateCategory,
     deleteCategory
 }
