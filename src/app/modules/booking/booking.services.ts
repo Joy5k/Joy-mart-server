@@ -16,15 +16,38 @@ const createBooking = async (bookingData: IBooking) => {
       throw new AppError(httpStatus.NOT_FOUND, 'Product not found');
     }
 
-    if (product.stock < bookingData.bookingQuantity) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Insufficient product quantity');
+    // 2. Check for existing booking of same product by same user
+    const existingBooking = await BookingModel.findOne({
+      productId: bookingData.productId,
+      userId: bookingData.userId,
+      orderStatus: { $nin: ['cancelled', 'delivered'] } // Exclude completed/cancelled bookings
+    }).session(session);
+
+    let booking;
+    let quantityToBook = bookingData.bookingQuantity;
+
+    if (existingBooking) {
+      // 3a. Update existing booking if found
+      const newQuantity = existingBooking.bookingQuantity + bookingData.bookingQuantity;
+      
+      if (product.stock < newQuantity) {
+        throw new AppError(httpStatus.BAD_REQUEST, 'Insufficient product quantity for additional booking');
+      }
+
+      existingBooking.bookingQuantity = newQuantity;
+      booking = await existingBooking.save({ session });
+      quantityToBook = bookingData.bookingQuantity; // Only deduct the additional quantity
+    } else {
+      // 3b. Create new booking if no existing one
+      if (product.stock < bookingData.bookingQuantity) {
+        throw new AppError(httpStatus.BAD_REQUEST, 'Insufficient product quantity');
+      }
+      const newBooking = await BookingModel.create([bookingData], { session });
+      booking = newBooking[0];
     }
 
-    // 2. Create booking
-    const booking = await BookingModel.create([bookingData], { session });
-
-    // 3. Update product stock and isActive status
-    const updatedStock = product.stock - bookingData.bookingQuantity;
+    // 4. Update product stock and isActive status
+    const updatedStock = product.stock - quantityToBook;
     const isActive = updatedStock > 0;
 
     await ProductModel.findByIdAndUpdate(
@@ -39,7 +62,7 @@ const createBooking = async (bookingData: IBooking) => {
     );
 
     await session.commitTransaction();
-    return booking[0];
+    return booking;
   } catch (error) {
     await session.abortTransaction();
     throw error;
@@ -49,11 +72,39 @@ const createBooking = async (bookingData: IBooking) => {
 };
 
 const getBookingsByUser = async (userId: string) => {
-  return BookingModel.find({ userId })
-    .populate('userId', 'name email')
-    .populate('productId', 'title price images stock isActive');
-};
+  try {
+    const bookings = await BookingModel.find({ userId })
+      .populate({
+        path: 'userId',
+        select: 'name email',
+        model: 'User'
+      })
+      .populate({
+        path: 'productId',
+        select: 'title price images stock isActive',
+        model: 'Product'
+      })
+      .sort({ createdAt: -1 }); // Sort by newest first
 
+    if (!bookings || bookings.length === 0) {
+      throw new AppError(httpStatus.NOT_FOUND, 'No bookings found for this user');
+    }
+
+    return bookings.map(booking => ({
+      ...booking.toObject(),
+      // Add calculated fields if needed
+      totalPrice: booking.bookingQuantity * (booking.productId as any).price
+    }));
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      'Failed to retrieve bookings'
+    );
+  }
+};
 const getBookingById = async (bookingId: string, userId?: string) => {
   const query: any = { _id: bookingId };
   if (userId) query.userId = userId;
@@ -132,27 +183,32 @@ const deleteBookingProduct = async (payload: { productId: string, userId: string
   session.startTransaction();
 
   try {
-    // 1. Find the booking
-    const booking = await BookingModel.findOne({
-      productId: payload.productId,
-      userId: payload.userId
-    }).session(session);
+    // Convert string IDs to ObjectId
+    const productObjectId = new mongoose.Types.ObjectId(payload.productId);
+    const userObjectId = new mongoose.Types.ObjectId(payload.userId);
 
+    // 1. Find the booking - querying nested _id fields
+    const booking = await BookingModel.findOne({
+         productId: payload.productId,
+          userId: payload.userId,
+    }).session(session);
+    console.log(booking)
     if (!booking) {
-      throw new AppError(httpStatus.NOT_FOUND, 'Booking not found for this product and user');
+      throw new AppError(httpStatus.NOT_FOUND, 'No bookings found for this product and user');
     }
 
     // 2. Restore product stock if booking wasn't already cancelled
     if (booking.orderStatus !== 'cancelled') {
-      const product = await ProductModel.findById(booking.productId).session(session);
+      const product = await ProductModel.findById(productObjectId).session(session);
+      
       if (product) {
         const updatedStock = product.stock + booking.bookingQuantity;
         await ProductModel.findByIdAndUpdate(
-          booking.productId,
+          productObjectId,
           {
             $set: {
               stock: updatedStock,
-              isActive: true // Reactivate product if it was inactive
+              isActive: updatedStock > 0 ? true : product.isActive
             }
           },
           { session }
@@ -172,7 +228,6 @@ const deleteBookingProduct = async (payload: { productId: string, userId: string
     session.endSession();
   }
 };
-
 
 
 const getAllBookings = async (filters: any = {}) => {

@@ -36,7 +36,7 @@ router.patch(
   bookingController.updateBooking
 );
 
-router.delete('/delete/:id',auth(USER_ROLE.user,USER_ROLE.admin,USER_ROLE.superAdmin,USER_ROLE.seller),bookingController.deleteBookingProduct)
+router.delete('/delete/:productId',auth(USER_ROLE.user,USER_ROLE.admin,USER_ROLE.superAdmin,USER_ROLE.seller),bookingController.deleteBookingProduct)
 
 
 
