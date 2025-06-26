@@ -4,7 +4,14 @@ import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { AuthServices } from "./auth.service";
 import { Request, Response } from "express";
-
+const cookieOptions: import("express").CookieOptions = {
+  secure: config.NODE_ENV === "production",
+  httpOnly: true,
+  sameSite: "none" as "none", // Required if your frontend and backend are on different domains
+  path: "/", // Ensure cookies are available on all paths
+  // Consider domain if you need cross-subdomain access
+  // domain: '.yourdomain.com' 
+};
 const registerUser = catchAsync(async (req: Request, res: Response) => {
   const result = (await AuthServices.registerUserIntoDB(req.body)) as {
     refreshToken: string;
@@ -13,17 +20,14 @@ const registerUser = catchAsync(async (req: Request, res: Response) => {
   };
   const { refreshToken, accessToken, needsPasswordChange } = result;
   // set refresh token in cookie
-  res.cookie("refreshToken", refreshToken, {
-    secure: config.NODE_ENV === "production",
-    httpOnly: true,
-    sameSite: "none",
-    maxAge: 1000 * 60 * 60 * 24 * 365,
+res.cookie("refreshToken", refreshToken, {
+    ...cookieOptions,
+    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
   });
+  
   res.cookie("authToken", accessToken, {
-    secure: config.NODE_ENV === "production",
-    httpOnly: true,
-    sameSite: "none",
-    maxAge: 1000 * 60 * 60 * 24 ,
+    ...cookieOptions,
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
   });
   
   sendResponse(res, {
@@ -39,19 +43,16 @@ const registerUser = catchAsync(async (req: Request, res: Response) => {
 
 const loginUser = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthServices.loginUser(req.body);
-  const { refreshToken, accessToken, needsPasswordChange } = result;
+  const { refreshToken, accessToken } = result;
 
   res.cookie("refreshToken", refreshToken, {
-    secure: config.NODE_ENV === "production",
-    httpOnly: true,
-    sameSite: "none",
-    maxAge: 1000 * 60 * 60 * 24 * 365,
+    ...cookieOptions,
+    maxAge: 365 * 24 * 60 * 60 * 1000, 
   });
+  
   res.cookie("authToken", accessToken, {
-    secure: config.NODE_ENV === "production",
-    httpOnly: true,
-    sameSite: "none",
-    maxAge: 1000 * 60 * 60 * 24 ,
+    ...cookieOptions,
+    maxAge: 24 * 60 * 60 * 1000,
   });
 
   sendResponse(res, {

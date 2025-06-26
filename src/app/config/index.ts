@@ -18,4 +18,11 @@ export default {
   cloudinary_api_key: process.env.CLOUDINARY_API_KEY,
   cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET,
   super_admin_password: process.env.SUPER_ADMIN_PASSWORD,
+  sslcommerz:{
+    store_id:process.env.STORE_ID,
+    store_password:process.env.SLCOMMERZ_STORE_PASSWORD,
+    is_live: process.env.NODE_ENV === 'production'
+  },
+ frontend_url:process.env.FRONTEND_URL,
+ backend_url:process.env.BACKEND_URL,
 };

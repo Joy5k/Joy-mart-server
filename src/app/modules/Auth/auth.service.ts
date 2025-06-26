@@ -1,6 +1,5 @@
 import bcrypt from "bcrypt";
 import httpStatus from "http-status";
-import { JwtPayload } from "jsonwebtoken";
 import config from "../../config/index";
 import AppError from "../../errors/AppError";
 import { User } from "../user/user.model";
