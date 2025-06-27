@@ -3,6 +3,8 @@ import { BookingModel } from '../booking/booking.model';
 import config from '../../config';
 import { IPaymentData } from './payment.interface';
 import { PaymentStatus } from './payment.constant';
+import AppError from '../../errors/AppError';
+import httpStatus from 'http-status';
 
 // Validate and assert SSLCommerz credentials
 const assertSSLCommerzConfig = () => {
@@ -19,11 +21,14 @@ const assertSSLCommerzConfig = () => {
 const { store_id, store_passwd, is_live } = assertSSLCommerzConfig();
 
 const initiatePayment = async (paymentData: IPaymentData) => {
-  const transactionId = 'TXN' + Date.now();
+  const transactionId = `JMART_TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
   
-  // Initialize with validated credentials
-  const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live);
-  
+  const sslcz = new SSLCommerzPayment(
+    'devel662407cca746e',
+    'devel662407cca746e@ssl', 
+    false // ← Sandbox mode MUST be false during testing
+  );
+
   const sslcommerzData = {
     total_amount: paymentData.total_amount,
     currency: 'BDT',
@@ -33,27 +38,27 @@ const initiatePayment = async (paymentData: IPaymentData) => {
     cancel_url: `${config.frontend_url}/payment/cancel/${transactionId}`,
     cus_name: paymentData.customer.name,
     cus_email: paymentData.customer.email,
-    cus_phone: paymentData.customer.phone,
-    cus_add1: paymentData.customer.address || 'N/A'
+    cus_phone: paymentData.customer.phone || '01601588531',
+    cus_add1: paymentData.customer.address || 'N/A',
+    shipping_method: 'NO', // For digital services
+    product_profile: 'non-physical-goods', // ← Critical field
+    product_name: 'Booking Payment',       
+    product_category: 'Service'           
   };
 
-  const apiResponse = await sslcz.init(sslcommerzData);
+  try {
+    const apiResponse = await sslcz.init(sslcommerzData);
+    
+    if (!apiResponse?.GatewayPageURL) {
+      throw new Error(`Payment failed: ${apiResponse.failedreason || 'Unknown error'}`);
 
-  if (!apiResponse?.GatewayPageURL) {
-    throw new Error('Failed to get payment URL from SSLCommerz');
+    }
+
+    return { paymentUrl: apiResponse.GatewayPageURL, transactionId };
+  } catch (error: any) {
+    throw new AppError(httpStatus.BAD_REQUEST,`Payment failed: ${error.message}`);
   }
-
-  await BookingModel.updateMany(
-    { _id: { $in: paymentData.bookingIds } },
-    { $set: { transactionId, paymentStatus: PaymentStatus.PENDING } }
-  );
-
-  return {
-    paymentUrl: apiResponse.GatewayPageURL,
-    transactionId
-  };
 };
-
 
 const validatePayment = async (transactionId: string) => {
   const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live);
