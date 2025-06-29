@@ -47,7 +47,6 @@ declare module 'sslcommerz-lts' {
     ipn_url?: string;
     shipping_method?: string;
     product_name?: string;
-    product_category?: string;
     product_profile?: string;
     cus_name: string;
     cus_email: string;

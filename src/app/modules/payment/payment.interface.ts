@@ -16,4 +16,5 @@ export interface IPaymentData {
   total_amount: number;
   currency?: string;
   customer: IPaymentCustomer;
+  paymentMethod?: 'online' | 'cod' | 'wallet';
 }

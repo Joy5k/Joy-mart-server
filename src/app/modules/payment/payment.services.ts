@@ -23,10 +23,29 @@ const { store_id, store_passwd, is_live } = assertSSLCommerzConfig();
 const initiatePayment = async (paymentData: IPaymentData) => {
   const transactionId = `JMART_TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
   
+
+  if (paymentData.paymentMethod === 'cod') {
+    await BookingModel.updateMany(
+      { _id: { $in: paymentData.bookingIds } },
+      {
+        orderId: transactionId,
+        paymentStatus: 'pending',
+        orderStatus: 'confirmed',
+        paymentMethod: 'cod',
+        totalAmount: paymentData.total_amount
+      }
+    );
+    return { paymentMethod: 'cod', transactionId };
+  }
+
+
+
+
+
   const sslcz = new SSLCommerzPayment(
-    'devel662407cca746e',
-    'devel662407cca746e@ssl', 
-    false // ← Sandbox mode MUST be false during testing
+   config.sslcommerz.store_id!,
+    config.sslcommerz.store_password!,
+    false 
   );
 
   const sslcommerzData = {
@@ -46,17 +65,29 @@ const initiatePayment = async (paymentData: IPaymentData) => {
     product_category: 'Service'           
   };
 
-  try {
+   try {
     const apiResponse = await sslcz.init(sslcommerzData);
     
     if (!apiResponse?.GatewayPageURL) {
-      throw new Error(`Payment failed: ${apiResponse.failedreason || 'Unknown error'}`);
-
+      throw new Error('Payment initiation failed');
     }
 
+    await BookingModel.updateMany(
+      { _id: { $in: paymentData.bookingIds } },
+      {
+        orderId: transactionId,
+        paymentStatus: 'pending',
+        paymentMethod: 'online'
+      }
+    );
+
     return { paymentUrl: apiResponse.GatewayPageURL, transactionId };
-  } catch (error: any) {
-    throw new AppError(httpStatus.BAD_REQUEST,`Payment failed: ${error.message}`);
+  } catch (error) {
+    await BookingModel.updateMany(
+      { _id: { $in: paymentData.bookingIds } },
+      { paymentStatus: 'failed' }
+    );
+    throw new AppError(httpStatus.BAD_REQUEST, 'Payment failed');
   }
 };
 
