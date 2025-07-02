@@ -10,5 +10,5 @@ const router = express.Router();
 router.post('/initiate',auth(USER_ROLE.user,USER_ROLE.seller,USER_ROLE.admin,USER_ROLE.superAdmin), PaymentController.initiatePayment);
 router.post('/validate/:transactionId',auth(USER_ROLE.user,USER_ROLE.seller,USER_ROLE.admin,USER_ROLE.superAdmin), PaymentController.validatePayment);
 router.post('/ipn',auth(USER_ROLE.user,USER_ROLE.seller,USER_ROLE.admin,USER_ROLE.superAdmin), PaymentController.paymentIPN);
-
+router.get('/track/:transactionId', auth(USER_ROLE.user, USER_ROLE.seller, USER_ROLE.admin, USER_ROLE.superAdmin), PaymentController.trackOrder);
 export const PaymentRoute = router;

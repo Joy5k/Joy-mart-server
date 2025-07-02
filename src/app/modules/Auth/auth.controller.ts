@@ -78,7 +78,10 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
 const refreshToken = catchAsync(async (req: Request, res: Response) => {
   const { refreshToken } = req.cookies;
   const result = await AuthServices.refreshToken(refreshToken);
-
+  res.cookie("authToken", result.accessToken, {
+    ...cookieOptions,
+    maxAge: 24 * 60 * 60 * 1000,
+  });
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

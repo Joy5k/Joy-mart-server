@@ -36,7 +36,7 @@ const createBooking = async (bookingData: IBooking) => {
 
       existingBooking.bookingQuantity = newQuantity;
       booking = await existingBooking.save({ session });
-      quantityToBook = bookingData.bookingQuantity; // Only deduct the additional quantity
+      quantityToBook = bookingData.bookingQuantity; 
     } else {
       // 3b. Create new booking if no existing one
       if (product.stock < bookingData.bookingQuantity) {

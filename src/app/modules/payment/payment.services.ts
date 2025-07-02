@@ -47,7 +47,7 @@ const initiatePayment = async (paymentData: IPaymentData) => {
     config.sslcommerz.store_password!,
     false 
   );
-
+ 
   const sslcommerzData = {
     total_amount: paymentData.total_amount,
     currency: 'BDT',
@@ -129,8 +129,21 @@ const handleIPN = async (ipnData: { tran_id: string; status: string }) => {
   return { success: true };
 };
 
+
+const trackOrderStatus = async (transactionId: string,userId:string) => {
+  const booking = await BookingModel.findOne({ orderId:transactionId, userId });
+
+  if (!booking) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Booking not found');
+  }
+
+  return booking
+}
+
+
 export const PaymentService = {
   initiatePayment,
   validatePayment,
-  handleIPN
+  handleIPN,
+  trackOrderStatus
 };

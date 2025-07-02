@@ -4,6 +4,9 @@ import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { PaymentService } from './payment.services';
+import { verifyToken } from '../Auth/auth.utils';
+import config from '../../config';
+import { JwtPayload } from 'jsonwebtoken';
 
 const initiatePayment = catchAsync(async (req: Request, res: Response) => {
   const { bookingIds, total_amount, currency, customer } = req.body;
@@ -51,8 +54,24 @@ const paymentIPN = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const trackOrder=catchAsync(async (req: Request, res: Response) => {
+  const { transactionId } = req.params;
+  const token = req.cookies?.authToken; 
+  const {userId}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload;  
+  console.log(transactionId, userId);
+  const result = await PaymentService.trackOrderStatus(transactionId,userId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Order status retrieved successfully',
+    data: result
+  });
+})
+
 export const PaymentController = {
   initiatePayment,
   validatePayment,
-  paymentIPN
+  paymentIPN,
+  trackOrder
 };
