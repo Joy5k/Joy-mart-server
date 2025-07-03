@@ -38,4 +38,10 @@ router.post(
   UserControllers.changeStatus,
 );
 
+router.get(
+  "/",
+  auth(USER_ROLE.admin, USER_ROLE.superAdmin),
+  UserControllers.getAllUsers,
+);
+
 export const UserRoutes = router;

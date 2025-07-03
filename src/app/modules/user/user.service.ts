@@ -8,6 +8,7 @@ import { Admin } from "../Admin/admin.model";
 import { TUser } from "./user.interface";
 import { User } from "./user.model";
 import { sendImageToCloudinary } from "../../utils/sendImageToCloudinary";
+import QueryBuilder from "../../builder/QueryBuilder";
 
 const createUserIntoDB = async (file: any, password: string, payload: any) => {
   const result = await User.create(file, password, payload);
@@ -84,9 +85,31 @@ const changeStatus = async (id: string, payload: { status: string }) => {
   return result;
 };
 
+const getAllUsers=async(query: Record<string, unknown>)=>{
+   const userSearchableFields = ['firstName', 'lastName', 'email', 'role'];
+
+  const userQuery = new QueryBuilder(
+    User.find(),
+    query
+  ) 
+    .search(userSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const result = await userQuery.modelQuery;
+  const meta = await userQuery.countTotal();
+  return {
+    meta,
+    result
+  };
+}
+
 export const UserServices = {
   createUserIntoDB,
   createAdminIntoDB,
   getMe,
   changeStatus,
+  getAllUsers
 };
