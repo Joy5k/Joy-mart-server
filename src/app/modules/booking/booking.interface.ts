@@ -9,10 +9,8 @@ export interface IBooking extends Document {
   productId: Types.ObjectId;
   bookingQuantity: number;
   userId: Types.ObjectId;
-  orderId: string;
+  orderId?: string | null;
   orderStatus: OrderStatus;
-  
-  // New fields for payment and tracking
   transactionId?: string;
   paymentStatus?: PaymentStatus;
   paymentMethod?: PaymentMethod;

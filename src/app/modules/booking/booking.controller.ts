@@ -95,21 +95,15 @@ const deleteBookingProduct = catchAsync(async (req: Request, res: Response) => {
   }
 
   // 3. Validate product ID
-  const { productId } = req.params;
-  if (!productId ) {
+  const { bookingId } = req.params;
+  if (!bookingId ) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Valid product ID is required');
   }
 
-  // 4. Debug logging
-  console.log('Attempting to delete booking for:', {
-    productId,
-    userId: decoded.userId,
-    time: new Date().toISOString()
-  });
 
   // 5. Call service
   const result = await bookingServices.deleteBookingProduct({
-    productId,
+    bookingId,
     userId: decoded.userId
   });
 

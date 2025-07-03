@@ -10,13 +10,15 @@ import { JwtPayload } from 'jsonwebtoken';
 
 const initiatePayment = catchAsync(async (req: Request, res: Response) => {
   const { bookingIds, total_amount, currency, customer } = req.body;
-  
+   const token = req.cookies?.authToken; 
+  const {userId}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload;  
   if (!bookingIds || !total_amount || !customer) {
     throw new Error('Missing required fields');
   }
 
   const result = await PaymentService.initiatePayment({
-    bookingIds,
+    userId,
+    productIds: bookingIds, 
     total_amount,
     currency,
     customer
@@ -58,7 +60,6 @@ const trackOrder=catchAsync(async (req: Request, res: Response) => {
   const { transactionId } = req.params;
   const token = req.cookies?.authToken; 
   const {userId}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload;  
-  console.log(transactionId, userId);
   const result = await PaymentService.trackOrderStatus(transactionId,userId);
 
   sendResponse(res, {
@@ -69,9 +70,24 @@ const trackOrder=catchAsync(async (req: Request, res: Response) => {
   });
 })
 
+const getAllOrderHistoryFromDB=catchAsync(async (req: Request, res: Response) => {
+  const token = req.cookies?.authToken; 
+  const {userId}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload;  
+  console.log(userId,'userId in payment controller');
+  const result = await PaymentService.getAllOrderHistory(userId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Order history retrieved successfully',
+    data: result
+  });
+})
+
 export const PaymentController = {
   initiatePayment,
   validatePayment,
   paymentIPN,
-  trackOrder
+  trackOrder,
+  getAllOrderHistoryFromDB
 };

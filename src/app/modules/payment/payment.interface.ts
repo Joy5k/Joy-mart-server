@@ -12,9 +12,17 @@ export interface IPaymentCustomer {
 }
 
 export interface IPaymentData {
-  bookingIds: string[];
+  productIds: string[];
+  userId: string; 
   total_amount: number;
   currency?: string;
   customer: IPaymentCustomer;
   paymentMethod?: 'online' | 'cod' | 'wallet';
+  shippingAddress?: {
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+  };
 }

@@ -11,4 +11,7 @@ router.post('/initiate',auth(USER_ROLE.user,USER_ROLE.seller,USER_ROLE.admin,USE
 router.post('/validate/:transactionId',auth(USER_ROLE.user,USER_ROLE.seller,USER_ROLE.admin,USER_ROLE.superAdmin), PaymentController.validatePayment);
 router.post('/ipn',auth(USER_ROLE.user,USER_ROLE.seller,USER_ROLE.admin,USER_ROLE.superAdmin), PaymentController.paymentIPN);
 router.get('/track/:transactionId', auth(USER_ROLE.user, USER_ROLE.seller, USER_ROLE.admin, USER_ROLE.superAdmin), PaymentController.trackOrder);
+router.get('/history', auth(USER_ROLE.user, USER_ROLE.seller, USER_ROLE.admin, USER_ROLE.superAdmin), PaymentController.getAllOrderHistoryFromDB);
+
+
 export const PaymentRoute = router;
