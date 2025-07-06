@@ -4,6 +4,8 @@ import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { AuthServices } from "./auth.service";
 import { Request, Response } from "express";
+import { JwtPayload } from "jsonwebtoken";
+import { verifyToken } from "./auth.utils";
 const cookieOptions: import("express").CookieOptions = {
   secure: config.NODE_ENV === "production",
   httpOnly: true,
@@ -65,8 +67,10 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
 
 const changePassword = catchAsync(async (req: Request, res: Response) => {
   const { ...passwordData } = req.body;
-
-  const result = await AuthServices.changePassword(req.user, passwordData);
+    const token = req.cookies?.authToken; 
+    const userData=verifyToken(token,config.jwt_access_secret as string) as JwtPayload;  
+    
+  const result = await AuthServices.changePassword(userData, passwordData);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

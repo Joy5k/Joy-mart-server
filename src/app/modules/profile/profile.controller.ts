@@ -6,6 +6,7 @@ import { Request, Response } from "express";
 import catchAsync from "../../utils/catchAsync";
 import { verifyToken } from "../Auth/auth.utils";
 import config from "../../config";
+import { JwtPayload } from "jsonwebtoken";
 
 const createProfileIntoDB = async (req: Request, res: Response) => {
   const payload = req.body as IProfile;
@@ -27,6 +28,8 @@ const getAllusers=catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 })
+
+
 const getMe=catchAsync(async (req: Request, res: Response) => {
   const token= req.headers.authorization || "";
   const {email}=verifyToken(token,config.jwt_access_secret as string);
@@ -48,8 +51,9 @@ const getMe=catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateProfile = catchAsync(async (req: Request, res: Response) => {
-  const token = req.headers.authorization || "";
-  const { email } = verifyToken(token, config.jwt_access_secret as string);
+    const token = req.cookies?.authToken; 
+    const {email}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload;  
+      
   const payload = req.body as Partial<IProfile>;
   const result = await ProfileServices.updateProfile(email, payload);
   sendResponse(res, {
