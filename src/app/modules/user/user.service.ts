@@ -9,6 +9,7 @@ import { TUser } from "./user.interface";
 import { User } from "./user.model";
 import { sendImageToCloudinary } from "../../utils/sendImageToCloudinary";
 import QueryBuilder from "../../builder/QueryBuilder";
+import { ProfileModel } from "../profile/profile.model";
 
 const createUserIntoDB = async (file: any, password: string, payload: any) => {
   const result = await User.create(file, password, payload);
@@ -106,10 +107,35 @@ const getAllUsers=async(query: Record<string, unknown>)=>{
   };
 }
 
+const updateUser= async (email: string, payload: Partial<TUser>) => {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const result = await User.findOneAndUpdate({ email }, payload, {
+      new: true,
+      session
+    });
+    if (!result) {
+      throw new AppError(httpStatus.NOT_FOUND, "User not found");
+    }
+    await ProfileModel.findOneAndUpdate({ email: result.email }, { $set: payload }, { new: true, session });
+    
+
+    await session.commitTransaction();
+    return result;
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
+
 export const UserServices = {
   createUserIntoDB,
   createAdminIntoDB,
   getMe,
   changeStatus,
-  getAllUsers
+  getAllUsers,
+  updateUser
 };

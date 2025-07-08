@@ -29,6 +29,11 @@ export const ProfileSchema = new Schema<IProfile>({
   phoneNumber: {
     type: String,
   },
+  role: {
+    type: String,
+    enum: ["superAdmin", "admin", "user", "seller"],
+    default: "user",
+  },
   address: {
     type: String,
   },

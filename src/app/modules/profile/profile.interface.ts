@@ -4,6 +4,7 @@ export interface IProfile {
   image?: string;
   email: string;
   password: string;
+  role: "superAdmin" | "admin" | "user" | "seller";
   phoneNumber?: string;
   address?: string;
   city?: string;

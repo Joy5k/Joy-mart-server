@@ -44,4 +44,6 @@ router.get(
   UserControllers.getAllUsers,
 );
 
+router.put('/updateByAdmin',auth(USER_ROLE.admin, USER_ROLE.superAdmin),UserControllers.updateUser)
+
 export const UserRoutes = router;
