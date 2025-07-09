@@ -6,13 +6,13 @@ import { AuthServices } from "./auth.service";
 import { Request, Response } from "express";
 import { JwtPayload } from "jsonwebtoken";
 import { verifyToken } from "./auth.utils";
+
 const cookieOptions: import("express").CookieOptions = {
   secure: config.NODE_ENV === "production",
-  httpOnly: true,
-  sameSite: "none" as "none", // Required if your frontend and backend are on different domains
-  path: "/", // Ensure cookies are available on all paths
-  // Consider domain if you need cross-subdomain access
-  // domain: '.yourdomain.com' 
+  httpOnly:false,
+  sameSite: "none" as "none",
+  path: "/",
+  
 };
 const registerUser = catchAsync(async (req: Request, res: Response) => {
   const result = (await AuthServices.registerUserIntoDB(req.body)) as {
@@ -115,6 +115,19 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+
+const logoutUser=catchAsync(async (req: Request, res: Response) => {
+ 
+  res.clearCookie("refreshToken", cookieOptions);
+  res.clearCookie("authToken", cookieOptions);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User logout successfully",
+    data: null,
+  });
+})
+
 export const AuthControllers = {
   registerUser,
   loginUser,
@@ -122,4 +135,5 @@ export const AuthControllers = {
   refreshToken,
   forgetPassword,
   resetPassword,
+  logoutUser
 };

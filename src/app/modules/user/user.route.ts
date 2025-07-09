@@ -12,9 +12,13 @@ const router = express.Router();
 router.post(
   "/create",
   validateRequest(UserValidation.userValidationSchema),
-  UserControllers.createStudent,
+  UserControllers.createUser,
 );
-
+router.post(
+  "/createUserByAdmin",
+  validateRequest(UserValidation.userValidationSchema),
+  UserControllers.createUserByAdmin,
+);
 router.post(
   "/create-admin",
   auth(USER_ROLE.admin, USER_ROLE.superAdmin),
@@ -44,6 +48,6 @@ router.get(
   UserControllers.getAllUsers,
 );
 
-router.put('/updateByAdmin',auth(USER_ROLE.admin, USER_ROLE.superAdmin),UserControllers.updateUser)
+router.put('/updateByAdmin/:email',auth(USER_ROLE.admin, USER_ROLE.superAdmin),UserControllers.updateUser)
 
 export const UserRoutes = router;

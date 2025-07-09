@@ -74,6 +74,28 @@ const createAdminIntoDB = async (
     throw new Error(err);
   }
 };
+
+const createUserByAdmin = async (payload: Partial<TUser>) => {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const result = await User.create([payload], { session });
+
+    if (!result.length) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Failed to create user");
+    }
+    await ProfileModel.create([{ user: result[0]._id }], { session });
+    await session.commitTransaction();
+    return result[0];
+  } catch (err: any) {
+    await session.abortTransaction();
+    throw new Error(err);
+  } finally {
+    session.endSession();
+  }
+};
+
+
 const getMe = async (userId: string, role: string) => {
   const result = await User.findOne({ id: userId, role: role });
 
@@ -137,5 +159,6 @@ export const UserServices = {
   getMe,
   changeStatus,
   getAllUsers,
-  updateUser
+  updateUser,
+  createUserByAdmin
 };
