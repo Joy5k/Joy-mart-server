@@ -12,52 +12,90 @@ const createReportProduct=async (payload:Partial<IReportedProduct>) => {
     
 }
 
-const getAllReportedProductByAdmin=async (query:any) => {
-    const queryAbleFields = ["searchTerm", "page", "limit", "sortBy", "sortOrder","status"];
-    try {
+const getAllReportedProductByAdmin = async ( query: any) => {
+  const queryAbleFields = ["searchTerm", "page", "limit", "sortBy", "sortOrder", "status","reason","reportedBy"];
+  
+  try {
     const reportQuery = new QueryBuilder(
-    ReportProduct.find().populate(['productId', 'reportedBy','adminReply.repliedBy']),
-    query
-  )
+      ReportProduct.find()
+        .populate({
+          path: 'productId',
+          select: 'name price images' 
+        })
+        .populate({
+          path: 'reportedBy',
+          select: 'name email' 
+        })
+        .populate({
+          path: 'adminReply.repliedBy',
+          select: 'name email' 
+        }),
+      query
+    )
     .search(queryAbleFields)
     .filter()
     .sort()
     .paginate()
     .fields();
 
-  const result = await reportQuery.modelQuery;
-  const meta = await reportQuery.countTotal();
-  return {
-    meta,
-    result
-  };
-    } catch (error) {
-        throw new AppError(httpStatus.UNAUTHORIZED, "Error fetching reported products");
-    }
-}
-const getAllMyReportedProduct=async (userId:string,query:any) => {
-    const queryAbleFields = ["searchTerm", "page", "limit", "sortBy", "sortOrder","status"];
-    try {
+    const result = await reportQuery.modelQuery;
+    const meta = await reportQuery.countTotal();
+    
+    return {
+      meta,
+      result
+    };
+  } catch (error) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "Error fetching reported products");
+  }
+};
+
+const getAllMyReportedProduct = async (userId: string, query: any) => {
+  const queryAbleFields = ["searchTerm", "page", "limit", "sortBy", "sortOrder", "status"];
+  
+  try {
     const reportQuery = new QueryBuilder(
-    ReportProduct.find({reportedBy: userId}).populate(['productId', 'reportedBy','adminReply.repliedBy']),
-    query
-  )
+      ReportProduct.find({ reportedBy: userId })
+        .populate({
+          path: 'productId',
+        
+          select: 'name price images description'
+        })
+        .populate({
+          path: 'reportedBy',
+         
+          select: 'name email avatar' 
+        })
+        .populate({
+          path: 'adminReply.repliedBy',
+        
+          select: 'name email role'
+        }),
+      query
+    )
     .search(queryAbleFields)
     .filter()
     .sort()
     .paginate()
     .fields();
 
-  const result = await reportQuery.modelQuery;
-  const meta = await reportQuery.countTotal();
-  return {
-    meta,
-    result
-  };
-    } catch (error) {
-        throw new AppError(httpStatus.UNAUTHORIZED, "Error fetching reported products");
-    }
-}
+    const result = await reportQuery.modelQuery;
+    const meta = await reportQuery.countTotal();
+    
+    return {
+      meta,
+      result
+    };
+  } catch (error) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "Error fetching reported products");
+  }
+};
+
+
+
+
+
+
 // reply user's reported product by admin or suparAdmin
 
 const updateReportedProduct = async (id: string, reply: any) => {

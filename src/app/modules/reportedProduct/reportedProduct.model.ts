@@ -2,11 +2,11 @@ import { model, Schema } from "mongoose";
 import { IReportedProduct } from "./reportedProduct.interface";
 
 const reportedProductSchema = new Schema<IReportedProduct>({
-    productId: { type:  Schema.Types.ObjectId, required: true },
+    productId: { type:  Schema.Types.ObjectId, ref: 'Product', required: true },
     reason: { type: String, required: true },
     reportImages: [{ type: String }],
-    description: { type: String, required: true },
-    reportedBy: { type:  Schema.Types.ObjectId, required: true }, 
+    description: { type: String, },
+    reportedBy: { type:  Schema.Types.ObjectId,ref:"User", required: true }, 
     status: { 
         type: String, 
         enum: ['pending', 'resolved', 'rejected'], 

@@ -33,6 +33,7 @@ const getAllMyReportedProduct=catchAsync(async (req: Request, res: Response) => 
 })
 
 const getAllReportedProductByAdmin=catchAsync(async (req: Request, res: Response) => {
+    
     const result = await ReportedProductServices.getAllReportedProductByAdmin(req.query);
     sendResponse(res,{
         statusCode:httpStatus.OK,
