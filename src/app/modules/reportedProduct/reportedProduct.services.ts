@@ -20,7 +20,7 @@ const getAllReportedProductByAdmin = async ( query: any) => {
       ReportProduct.find()
         .populate({
           path: 'productId',
-          select: 'name price images' 
+          select: 'name price images title' 
         })
         .populate({
           path: 'reportedBy',
@@ -93,14 +93,12 @@ const getAllMyReportedProduct = async (userId: string, query: any) => {
 
 
 
-
-
-
-// reply user's reported product by admin or suparAdmin
-
 const updateReportedProduct = async (id: string, reply: any) => {
+  console.log(id, reply);
     try {
-        const result = await ReportProduct.findByIdAndUpdate(id, { adminReply: reply }, { new: true });
+        const result = await ReportProduct.findByIdAndUpdate(id, { adminReply: {
+          message: reply.message,
+        },status:reply.status }, { new: true });
         return result;
     } catch (error) {
         throw new AppError(httpStatus.UNAUTHORIZED, "Error updating reported product");

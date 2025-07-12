@@ -9,6 +9,7 @@ import { SubscribeRoutes } from "../modules/subscribe/subscribe.rouets";
 import { bookingRoutes } from "../modules/booking/booking.route";
 import { PaymentRoute } from "../modules/payment/payment.routes";
 import { ReportedProductRoutes } from "../modules/reportedProduct/reportedProduct.route";
+import { ProductCommentRoute } from "../modules/productComments/productComments.route";
 
 const router = Router();
 
@@ -54,6 +55,10 @@ const moduleRoutes = [
   {
     path:'/report',
     route:ReportedProductRoutes
+  },
+  {
+    path:'/productComment',
+    route:ProductCommentRoute
   }
 ];
 
