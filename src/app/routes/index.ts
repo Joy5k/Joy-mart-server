@@ -10,6 +10,7 @@ import { bookingRoutes } from "../modules/booking/booking.route";
 import { PaymentRoute } from "../modules/payment/payment.routes";
 import { ReportedProductRoutes } from "../modules/reportedProduct/reportedProduct.route";
 import { ProductCommentRoute } from "../modules/productComments/productComments.route";
+import { PushNotificationRoutes } from "../modules/pushNotification/pushNotification.route";
 
 const router = Router();
 
@@ -59,6 +60,10 @@ const moduleRoutes = [
   {
     path:'/productComment',
     route:ProductCommentRoute
+  },
+  {
+    path:'/push-notifications',
+    route:PushNotificationRoutes
   }
 ];
 

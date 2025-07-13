@@ -7,7 +7,6 @@ import QueryBuilder from "../../builder/QueryBuilder";
 const createReportProduct=async (payload:Partial<IReportedProduct>) => {
     
         const result =await ReportProduct.create(payload)
-        console.log(result,payload)
         return result;
     
 }
@@ -94,7 +93,6 @@ const getAllMyReportedProduct = async (userId: string, query: any) => {
 
 
 const updateReportedProduct = async (id: string, reply: any) => {
-  console.log(id, reply);
     try {
         const result = await ReportProduct.findByIdAndUpdate(id, { adminReply: {
           message: reply.message,

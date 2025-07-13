@@ -73,7 +73,6 @@ const trackOrder=catchAsync(async (req: Request, res: Response) => {
 const getAllOrderHistoryFromDB=catchAsync(async (req: Request, res: Response) => {
   const token = req.cookies?.authToken; 
   const {userId}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload;  
-  console.log(userId,'userId in payment controller');
   const result = await PaymentService.getAllOrderHistory(userId);
 
   sendResponse(res, {

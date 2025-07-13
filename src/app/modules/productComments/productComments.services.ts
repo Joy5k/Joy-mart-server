@@ -56,7 +56,6 @@ const updateProductComment = async (commentId: string, userId: string, commentDa
         { $set: commentData },
         { new: true }
     );
-    console.log(commentData)
     if (!result) {
         throw new AppError(httpStatus.NOT_FOUND, "Product comment not found or you are not authorized to update this comment");
     }

@@ -32,7 +32,6 @@ const getAllCategories = async (query: Record<string, unknown>) => {
   
 }
 const updateCategory=async(_id:string,payload:ICategory)=>{
-    console.log(_id,payload)
     const result=await Category.findByIdAndUpdate(_id,payload,{
         new:true,
     
