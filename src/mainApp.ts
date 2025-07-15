@@ -7,7 +7,7 @@ import notFound from "./app/middlewares/notFound";
 import router from "./app/routes";
 
 
-const serviceAccount = require('../joy-mart-client-firebase-adminsdk-fbsvc-400c9c8862.json');
+const serviceAccount = require('../notification-secrete.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
