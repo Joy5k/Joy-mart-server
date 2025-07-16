@@ -16,17 +16,16 @@ const app: Application = express();
 app.use(express.json());
 app.use(cookieParser());
 
+
+
 const allowedOrigins = [
   'https://joy-mart.vercel.app',
-  'http://localhost:3000' 
+  'http://localhost:3000',
 ];
 
-
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+const corsOptions = {
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
     if (!origin) return callback(null, true);
-    
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -35,11 +34,13 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
-// Handle preflight requests
-app.options('*', cors());
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // very important!
+
+
 
 app.get("/", (req: Request, res: Response) => {
   res.send("🚀 Joy Mart Server is Running");

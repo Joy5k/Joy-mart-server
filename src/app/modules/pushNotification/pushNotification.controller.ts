@@ -29,7 +29,6 @@ const submitToken = catchAsync(async (req: Request, res: Response) => {
 
 const sendNotification = catchAsync(async (req: Request, res: Response) => {
   const { title, body, data } = req.body;
-  console.log(req.body)
   const response = await pushNotificationServices.sendNotification({ 
     title, 
     body,
