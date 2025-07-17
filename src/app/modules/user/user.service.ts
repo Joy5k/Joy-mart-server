@@ -12,8 +12,26 @@ import QueryBuilder from "../../builder/QueryBuilder";
 import { ProfileModel } from "../profile/profile.model";
 
 const createUserIntoDB = async (file: any, password: string, payload: any) => {
-  const result = await User.create(file, password, payload);
-  return result;
+  const session=await mongoose.startSession()
+  try {
+        session.startTransaction();
+
+    const result=await ProfileModel.create([payload], { session });
+    
+    if (!result.length) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Failed to create user");
+    }
+    await ProfileModel.create([{ user: result[0]._id }], { session });
+    await User.create([{ user: result[0]._id }], { session });
+    await session.commitTransaction();
+    return result[0];
+  } catch (err: any) {
+    await session.abortTransaction();
+    throw new Error(err);
+  } finally {
+    session.endSession();
+  }
+  
 };
 
 const createAdminIntoDB = async (

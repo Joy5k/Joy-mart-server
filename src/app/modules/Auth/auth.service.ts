@@ -7,9 +7,26 @@ import { TLoginUser, TRegisterUser } from "./auth.interface";
 import { createToken, verifyToken } from "./auth.utils";
 import { sendEmail } from "../../utils/sendEmail";
 import { USER_ROLE } from "../user/user.constant";
+import { ProfileModel } from "../profile/profile.model";
+import mongoose from "mongoose";
 
 const registerUserIntoDB = async (payload: TRegisterUser) => {
-  const user = await User.create(payload);
+   const session=await mongoose.startSession()
+    const isUserExists=await User.findOne({email:payload.email})
+    const isUserExistsOnProfile=await ProfileModel.findOne({email:payload.email})
+    if(isUserExists||isUserExistsOnProfile){
+    
+    throw new AppError(httpStatus.FOUND,`${payload.email} already exists`)
+    }
+    try {
+       session.startTransaction();
+      const result=await ProfileModel.create([payload], { session });
+      if (!result.length) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Failed to create user");
+      }
+      await ProfileModel.create([payload], { session });
+     
+    const user :any = await User.create([payload], { session });
   if (user._id) {
     const jwtPayload = {
       userId: user._id,
@@ -34,10 +51,20 @@ const registerUserIntoDB = async (payload: TRegisterUser) => {
       refreshToken,
       needsPasswordChange: true,
     };
-  }
-  return user;
-};
+      
 
+}
+    
+    await session.commitTransaction();
+      return result[0];
+    } catch (err: any) {
+      await session.abortTransaction();
+      throw new Error(err);
+    } finally {
+      session.endSession();
+    }
+
+}
 const loginUser = async (payload: TLoginUser) => {
   // checking if the user is exist
   const user = await User.isUserExistsByEmail(payload.email);

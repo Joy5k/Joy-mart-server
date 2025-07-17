@@ -16,29 +16,27 @@ const app: Application = express();
 app.use(express.json());
 app.use(cookieParser());
 
+app.use(express.urlencoded({ extended: true }));
 
 
-const allowedOrigins = [
-  'https://joy-mart.vercel.app',
-  'http://localhost:3000',
-];
+app.use(
+  cors({
+    // origin: ['https://joy-mart.vercel.app'],
+        origin: ['http://localhost:3000'],
 
-const corsOptions = {
-  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
-
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // very important!
+    credentials: true,
+  }),
+);
+app.use((req, res, next) => {
+  res.header(
+    'Access-Control-Allow-Origin',
+    // ['https://joy-mart.vercel.app']
+    ['http://localhost:3000']
+  );
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
 
 
 
