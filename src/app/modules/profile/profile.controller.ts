@@ -31,7 +31,7 @@ const getAllusers=catchAsync(async (req: Request, res: Response) => {
 
 
 const getMe=catchAsync(async (req: Request, res: Response) => {
-  const token= req.headers.authorization || "";
+  const token= req.cookies?.authToken;
   const {email}=verifyToken(token,config.jwt_access_secret as string);
   if (!email) {
     return sendResponse(res, {
@@ -63,6 +63,7 @@ const updateProfile = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
 const softDeleteProfile= catchAsync(async (req: Request, res: Response) => {
   const profileId = req.params.id;
   const result = await ProfileServices.softDeleteProfile(profileId);

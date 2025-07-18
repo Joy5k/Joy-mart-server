@@ -66,7 +66,7 @@ const getAlluser =async () => {
 
 const getMe = async (email: string) => {
   try {
-    const profile = await ProfileModel.findOne({ email: email });
+    const profile = await ProfileModel.findOne({ email: email,isDeleted:false });
     if (!profile) {
       throw new AppError(httpStatus.NOT_FOUND, "Profile not found");
     }
@@ -84,24 +84,24 @@ const updateProfile = async (email: string, payload: Partial<IProfile>) => {
   session.startTransaction();
   
   try {
-    // 1. Find the profile with session
+    //  Find the profile with session
     const profile = await ProfileModel.findOne({ email }).session(session);
     if (!profile) {
       throw new AppError(httpStatus.NOT_FOUND, "Profile not found");
     }
 
-    // 2. Find the associated user
+    //  Find the associated user
     const user = await User.findOne({ email: profile.email }).session(session);
     if (!user) {
       throw new AppError(httpStatus.NOT_FOUND, "User not found");
     }
 
-    // 3. Check if either is deleted
+    //  Check if either is deleted
     if (user.isDeleted || profile.isDeleted) {
       throw new AppError(httpStatus.FORBIDDEN, "This profile is already deleted");
     }
 
-    // 4. Prepare updates for both profile and user
+    // Prepare updates for both profile and user
     const profileUpdate = { ...payload };
     const userUpdate: Partial<{ email: string }> = {};
     
@@ -110,12 +110,14 @@ const updateProfile = async (email: string, payload: Partial<IProfile>) => {
       userUpdate.email = payload.email;
     }
 
-    // 5. Execute updates in parallel for better performance
-    const [profileUpdateResult, userUpdateResult] = await Promise.all([
+    //  Execute updates in parallel for better performance
+     await Promise.all([
       ProfileModel.updateOne(
         { email: email }, 
         { $set: profileUpdate }, 
+       
         { session }
+
       ),
       Object.keys(userUpdate).length > 0 
         ? User.updateOne(
@@ -123,15 +125,11 @@ const updateProfile = async (email: string, payload: Partial<IProfile>) => {
             { $set: userUpdate }, 
             { session }
           )
-        : Promise.resolve(null)  // Skip if no user updates needed
+        : Promise.resolve(null) 
     ]);
 
-    // 6. Verify updates were successful
-    if (profileUpdateResult.modifiedCount === 0 && (!userUpdateResult || userUpdateResult.modifiedCount === 0)) {
-      throw new AppError(httpStatus.NOT_MODIFIED, "No changes were made");
-    }
 
-    // 7. Fetch updated profile
+    //  Fetch updated profile
     const updatedProfile = await ProfileModel.findOne({ email }).session(session);
     if (!updatedProfile) {
       throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, "Failed to fetch updated profile");

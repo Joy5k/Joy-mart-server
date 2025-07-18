@@ -21,8 +21,8 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(
   cors({
-    // origin: ['https://joy-mart.vercel.app'],
-        origin: ['http://localhost:3000'],
+    origin: ['https://joy-mart.vercel.app'],
+        // origin: ['http://localhost:3000'],
 
     credentials: true,
   }),
@@ -30,8 +30,8 @@ app.use(
 app.use((req, res, next) => {
   res.header(
     'Access-Control-Allow-Origin',
-    // ['https://joy-mart.vercel.app']
-    ['http://localhost:3000']
+    ['https://joy-mart.vercel.app']
+    // ['http://localhost:3000']
   );
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
   res.header('Access-Control-Allow-Headers', 'Content-Type');

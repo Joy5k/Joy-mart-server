@@ -11,23 +11,33 @@ import { ProfileModel } from "../profile/profile.model";
 import mongoose from "mongoose";
 
 const registerUserIntoDB = async (payload: TRegisterUser) => {
-   const session=await mongoose.startSession()
-    const isUserExists=await User.findOne({email:payload.email})
-    const isUserExistsOnProfile=await ProfileModel.findOne({email:payload.email})
-    if(isUserExists||isUserExistsOnProfile){
-    
-    throw new AppError(httpStatus.FOUND,`${payload.email} already exists`)
+  const session = await mongoose.startSession();
+  try {
+     session.startTransaction();
+
+    // Check if user exists in either collection
+    const [isUserExists, isUserExistsOnProfile] = await Promise.all([
+      User.findOne({ email: payload.email }).session(session),
+      ProfileModel.findOne({ email: payload.email }).session(session)
+    ]);
+
+    if (isUserExists || isUserExistsOnProfile) {
+      throw new AppError(httpStatus.CONFLICT, `${payload.email} already exists`);
     }
-    try {
-       session.startTransaction();
-      const result=await ProfileModel.create([payload], { session });
-      if (!result.length) {
-        throw new AppError(httpStatus.BAD_REQUEST, "Failed to create user");
-      }
-      await ProfileModel.create([payload], { session });
-     
-    const user :any = await User.create([payload], { session });
-  if (user._id) {
+
+    // Create profile 
+    const profileResult = await ProfileModel.create([payload], { session });
+    if (!profileResult.length) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Failed to create profile");
+    }
+
+    //  create user
+    const userResult = await User.create([payload], { session });
+    if (!userResult.length || !userResult[0]._id) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Failed to create user");
+    }
+
+    const user = userResult[0];
     const jwtPayload = {
       userId: user._id,
       role: USER_ROLE.user,
@@ -46,25 +56,20 @@ const registerUserIntoDB = async (payload: TRegisterUser) => {
       config.jwt_refresh_expires_in as string,
     );
 
+    await session.commitTransaction();
+    
     return {
       accessToken,
       refreshToken,
       needsPasswordChange: true,
     };
-      
-
-}
-    
-    await session.commitTransaction();
-      return result[0];
-    } catch (err: any) {
-      await session.abortTransaction();
-      throw new Error(err);
-    } finally {
-      session.endSession();
-    }
-
-}
+  } catch (err: any) {
+    await session.abortTransaction();
+    throw new Error(err);
+  } finally {
+    await session.endSession();
+  }
+};
 const loginUser = async (payload: TLoginUser) => {
   // checking if the user is exist
   const user = await User.isUserExistsByEmail(payload.email);

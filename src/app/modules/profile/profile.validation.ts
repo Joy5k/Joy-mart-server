@@ -43,7 +43,6 @@ const updateProfileValidationSchema = z.object({
     firstName: z.string().optional(),
     lastName: z.string().optional(),
     image: z.string().optional(),
-    email: z.string().email("Invalid email format").optional(),
     password: z.string().min(6, { message: "Password should be at least 6 characters long" }).optional(),
     phoneNumber: z.string().optional(),
     address: z.string().optional(),
