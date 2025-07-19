@@ -15,4 +15,5 @@ route.post('/createByEmail',validateRequest(subscribeValidation.create),subscrib
 
 route.delete('/unsubscribe',subscribeController.unsubscribe)
 
+route.delete ('/unsubscribeUsingToken',auth(USER_ROLE.user,USER_ROLE.admin,USER_ROLE.seller,USER_ROLE.superAdmin),subscribeController.handleSubscribeInToDB)
 export const SubscribeRoutes=route

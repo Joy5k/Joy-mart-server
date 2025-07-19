@@ -29,6 +29,7 @@ const unsubscribeUserFromDB=async(email:string)=>{
     if(!isExists){
         throw new AppError(httpStatus.NOT_FOUND,"user does not exists")
     }
+
     const result=await EmailModel.findByIdAndUpdate({
             email
     },{
@@ -37,8 +38,34 @@ const unsubscribeUserFromDB=async(email:string)=>{
     return result
 }
 
+
+
+const handleSubscribe=async(email:string)=>{
+   const isExists=await EmailModel.findOne({email})
+    if(!isExists){
+        throw new AppError(httpStatus.NOT_FOUND,"user did not subscribed")
+    }
+
+    if(isExists.isSubscribe===true){
+      return await EmailModel.findOneAndUpdate({
+        email
+      }, {
+        isSubscribe: false
+      }, { new: true
+      })
+    } else{
+        return await EmailModel.findOneAndUpdate({
+        email
+      },{
+        isSubscribe:true
+      }, { new: true
+    })
+    }
+   
+}
 export const subscibeServices={
     createUserSubscribeIntoDB,
     getAllSubscribedUsersFromDB,
-    unsubscribeUserFromDB
+    unsubscribeUserFromDB,
+    handleSubscribe
 }

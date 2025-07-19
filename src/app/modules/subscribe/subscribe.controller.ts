@@ -9,7 +9,7 @@ import { subscibeServices } from "./subscribe.service";
 
 
 const createSubscribeUsingToken=catchAsync(async(req:Request,res:Response)=>{
-  const token = req.headers.authorization;
+  const token = req.cookies?.authToken;
     if(!token){
         throw new AppError(httpStatus.BAD_REQUEST,"you are not authorized")
     }
@@ -56,17 +56,17 @@ const unsubscribe=catchAsync(async(req:Request,res:Response)=>{
         data:result
     })
 })
-const unsubscribeUsingToken=catchAsync(async(req:Request,res:Response)=>{
-  const token = req.headers.authorization;
+const handleSubscribeInToDB=catchAsync(async(req:Request,res:Response)=>{
+  const token = req.cookies?.authToken;
     if(!token){
         throw new AppError(httpStatus.BAD_REQUEST,"you are not authorized")
     }
   const {email}=verifyToken(token,config.jwt_access_secret as string)
-  const result=await subscibeServices.unsubscribeUserFromDB(email)
+  const result=await subscibeServices.handleSubscribe(email)
   sendResponse(res,{
     statusCode:httpStatus.OK,
     success:true,
-    message:"Unsubscribed successfully",
+    message:`${result?.isSubscribe===true ? "Subscribed successfully" : "Unsubscribed successfully"}`,
     data:result
   })
 })
@@ -76,5 +76,5 @@ export const subscribeController={
     createSubscribe,
     getAllSubscribers,
     unsubscribe,
-    unsubscribeUsingToken
+     handleSubscribeInToDB
 }
