@@ -160,35 +160,57 @@ const updateProfile = async (email: string, payload: Partial<IProfile>) => {
   }
 };
 
-const softDeleteProfile = async (profileId: string) => {
+const softDeleteProfile = async (email: string) => {
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
 
-    const profile = await ProfileModel.findById(profileId).session(session);
+    const profile = await ProfileModel.findOne({ email }).session(session);
     if (!profile) {
       throw new AppError(httpStatus.NOT_FOUND, "Profile not found");
     }
-    const userModel= await User.findOne({ email: profile.email }).session(session);
+
+    const userModel = await User.findOne({ email: profile.email })
+      .session(session);
+    
     if (!userModel) {
       throw new AppError(httpStatus.NOT_FOUND, "User not found");
     }
-    if( userModel.isDeleted || profile.isDeleted) {
-      throw new AppError(httpStatus.FORBIDDEN, "This profile is already deleted");
+
+    if (userModel.isDeleted || profile.isDeleted) {
+      throw new AppError(httpStatus.CONFLICT, "Profile already deleted");
     }
-    userModel.isDeleted = true;
-    profile.isDeleted = true;
-    await userModel.save({ session });
-    await profile.save({ session });
+
+    // Method 1: Using direct update (recommended)
+    await User.updateOne(
+      { _id: userModel._id },
+      { $set: { isDeleted: true } },
+      { session }
+    );
+
+    await ProfileModel.updateOne(
+      { _id: profile._id },
+      { $set: { isDeleted: true } },
+      { session }
+    );
 
     await session.commitTransaction();
-    await session.endSession();
-    return profile;
+    return { success: true, profile };
   } catch (error: any) {
     await session.abortTransaction();
+    
+    // Log the actual error for debugging
+    console.error('Detailed error:', error);
+    
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      error.message || "Failed to soft delete profile"
+    );
+  } finally {
     await session.endSession();
-    console.error("Failed to soft delete profile:", error);
-    throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, "Failed to soft delete profile");
   }
 };
 

@@ -65,8 +65,9 @@ const updateProfile = catchAsync(async (req: Request, res: Response) => {
 });
 
 const softDeleteProfile= catchAsync(async (req: Request, res: Response) => {
-  const profileId = req.params.id;
-  const result = await ProfileServices.softDeleteProfile(profileId);
+   const token= req.cookies?.authToken;
+  const {email}=verifyToken(token,config.jwt_access_secret as string);
+  const result = await ProfileServices.softDeleteProfile(email);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
