@@ -16,7 +16,6 @@ router.post(
 );
 router.post(
   "/createUserByAdmin",
-  validateRequest(UserValidation.userValidationSchema),
   UserControllers.createUserByAdmin,
 );
 router.post(
@@ -49,5 +48,7 @@ router.get(
 );
 
 router.put('/updateByAdmin/:email',auth(USER_ROLE.admin, USER_ROLE.superAdmin),UserControllers.updateUser)
+
+router.delete('/deleteBySuperAdmin',auth(USER_ROLE.superAdmin),UserControllers.deleteUserBySuperAdmin)
 
 export const UserRoutes = router;

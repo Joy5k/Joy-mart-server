@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { UserServices } from "./user.service";
+import { Request, Response } from "express";
 
 const createUser = catchAsync(async (req, res) => {
   const { password, student: studentData } = req.body;
@@ -39,8 +40,6 @@ const createAdmin = catchAsync(async (req, res) => {
 
 const createUserByAdmin = catchAsync(async (req, res) => {
   
-    const data = req.body;
-
     const result = await UserServices.createUserByAdmin(req.body);
 
     sendResponse(res, {
@@ -97,6 +96,16 @@ const updateUser = catchAsync(async (req, res) => {
   });
 });
 
+const deleteUserBySuperAdmin = catchAsync(async (req: Request, res: Response) => {
+  const { email } = req.body;
+  const result = await UserServices.deleteUserBySuperAdmin(email);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User deleted successfully",
+    data: result,
+  });
+});
 
 export const UserControllers = {
    createUser,
@@ -105,6 +114,7 @@ export const UserControllers = {
   changeStatus,
   getAllUsers,
   updateUser,
-  createUserByAdmin
+  createUserByAdmin,
+  deleteUserBySuperAdmin
 };
 

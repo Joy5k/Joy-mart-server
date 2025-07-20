@@ -10,6 +10,7 @@ import { User } from "./user.model";
 import { sendImageToCloudinary } from "../../utils/sendImageToCloudinary";
 import QueryBuilder from "../../builder/QueryBuilder";
 import { ProfileModel } from "../profile/profile.model";
+import bcrypt from "bcrypt";
 
 const createUserIntoDB = async (file: any, password: string, payload: any) => {
   const session=await mongoose.startSession()
@@ -94,15 +95,27 @@ const createAdminIntoDB = async (
 };
 
 const createUserByAdmin = async (payload: Partial<TUser>) => {
+  const { password } = payload;
+  if (!password) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Password is required");
+  }
+  const encryptedPassword = await bcrypt.hash(
+    password,
+    Number(config.bcrypt_salt_rounds),
+  );
+  const modifyPayload = {
+    ...payload,
+    password: encryptedPassword
+  };
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    const result = await User.create([payload], { session });
+    const result = await User.create([modifyPayload], { session });
 
     if (!result.length) {
       throw new AppError(httpStatus.BAD_REQUEST, "Failed to create user");
     }
-    await ProfileModel.create([{ user: result[0]._id }], { session });
+    await ProfileModel.create([modifyPayload], { session });
     await session.commitTransaction();
     return result[0];
   } catch (err: any) {
@@ -127,7 +140,7 @@ const changeStatus = async (id: string, payload: { status: string }) => {
 };
 
 const getAllUsers=async(query: Record<string, unknown>)=>{
-   const userSearchableFields = ['firstName', 'lastName', 'email', 'role'];
+   const userSearchableFields = ['firstName', 'lastName', 'email', 'role','status'];
 
   const userQuery = new QueryBuilder(
     User.find(),
@@ -171,6 +184,57 @@ const updateUser= async (email: string, payload: Partial<TUser>) => {
   }
 };
 
+
+const deleteUserBySuperAdmin = async (userEmail: string) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+
+      // Check existence - note the different session passing syntax
+      const userExists = await User.findOne({ email: userEmail }).session(session);
+      
+      const profileExists = await ProfileModel.findOne({ email: userEmail }).session(session);
+
+      if (!userExists || !profileExists) {
+        throw new AppError(httpStatus.NOT_FOUND, "User not found in one or both collections");
+      }
+
+      // Delete operations with proper session attachment
+      const userDeleteResult = await User.deleteOne({ email: userEmail }).session(session);
+
+      const profileDeleteResult = await ProfileModel.deleteOne({ email: userEmail }).session(session);
+
+      if (userDeleteResult.deletedCount === 0 || profileDeleteResult.deletedCount === 0) {
+        throw new Error('One or both deletions reported 0 documents deleted');
+      }
+
+      return { 
+        success: true,
+        userDeleted: userDeleteResult.deletedCount,
+        profileDeleted: profileDeleteResult.deletedCount
+      };
+    });
+
+    return { 
+      success: true, 
+      message: `User ${userEmail} deleted successfully` 
+    };
+  } catch (err:any) {
+    console.error('Deletion error:', err);
+    
+    if (err instanceof AppError) {
+      throw err;
+    }
+    
+    throw new AppError(
+      httpStatus.INTERNAL_SERVER_ERROR, 
+      `Failed to delete user ${userEmail}`,
+      err.message
+    );
+  } finally {
+    await session.endSession();
+  }
+};
 export const UserServices = {
   createUserIntoDB,
   createAdminIntoDB,
@@ -178,5 +242,6 @@ export const UserServices = {
   changeStatus,
   getAllUsers,
   updateUser,
-  createUserByAdmin
+  createUserByAdmin,
+  deleteUserBySuperAdmin
 };
