@@ -6,6 +6,7 @@ import { AuthServices } from "./auth.service";
 import { Request, Response } from "express";
 import { JwtPayload } from "jsonwebtoken";
 import { verifyToken } from "./auth.utils";
+import AppError from "../../errors/AppError";
 
 const cookieOptions: import("express").CookieOptions = {
   secure: config.NODE_ENV === "production",
@@ -94,8 +95,8 @@ const refreshToken = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const forgetPassword = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.body.id;
-  const result = await AuthServices.forgetPassword(userId);
+  const userEmail = req.body.email;
+  const result = await AuthServices.forgetPassword(userEmail);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -104,9 +105,12 @@ const forgetPassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const resetPassword = catchAsync(async (req: Request, res: Response) => {
-  const token = req.headers.authorization;
-
-  const result = await AuthServices.resetPassword(req.body, token!);
+  const token = req.body.userId;
+  if(!token){
+    throw new AppError(httpStatus.UNAUTHORIZED,"Token is required for reset password")
+  }
+  console.log(token,req.body)
+  const result = await AuthServices.resetPassword(req.body, token);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

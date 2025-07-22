@@ -5,14 +5,14 @@ const productCommentValidationSchema=z.object({
     body:z.object({
         productId:z.string().min(1).max(24),
         rating:z.number().min(1).max(5),
-        comment:z.string().min(1).max(1500)
+        comment:z.string().min(1).max(1500).optional()
     }),
 })
 
 const updateCommentValidaton=z.object({
     body:z.object({
         productId:z.string().min(1).max(24).optional(),
-        rating:z.number().min(1).max(5).optional(),
+        rating:z.number().max(5).optional(),
         comment:z.string().max(1500).optional()
     }),
 })

@@ -26,7 +26,6 @@ const ProductCommentSchema= new Schema<IProductComment>({
     },
     comment: {
         type: String,
-        required: true,
         trim: true
     },
     createdAt: {

@@ -26,15 +26,15 @@ const changePasswordValidationSchema = z.object({
 
 const forgetPasswordValidationSchema = z.object({
   body: z.object({
-    id: z.string({
-      required_error: "User id is required!",
+    email: z.string({
+      required_error: "User email is required!",
     }),
   }),
 });
 const resetPasswordValidationSchema = z.object({
   body: z.object({
-    id: z.string({
-      required_error: "User id is required!",
+    email: z.string({
+      required_error: "email id is required!",
     }),
     newPassword: z.string({
       required_error: "User password is required!",

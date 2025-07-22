@@ -25,4 +25,6 @@ export default {
   },
  frontend_url:process.env.FRONTEND_URL,
  backend_url:process.env.BACKEND_URL,
+ nodemailer_email_user:process.env.EMAIL_USER,
+ nodemailer_email_pass:process.env.EMAIL_PASS
 };
