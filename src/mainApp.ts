@@ -18,25 +18,26 @@ app.use(cookieParser());
 
 app.use(express.urlencoded({ extended: true }));
 
+// CORS configuration
+const allowedOrigins = ['https://joy-mart.vercel.app', 'http://localhost:3000'];
 
 app.use(
   cors({
-    origin: ['https://joy-mart.vercel.app'],
-        // origin: ['http://localhost:3000'],
-
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
     credentials: true,
-  }),
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  })
 );
-app.use((req, res, next) => {
-  res.header(
-    'Access-Control-Allow-Origin',
-    ['https://joy-mart.vercel.app']
-    // ['http://localhost:3000']
-  );
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  next();
-});
 
 
 

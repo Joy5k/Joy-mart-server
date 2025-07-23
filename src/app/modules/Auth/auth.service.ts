@@ -435,12 +435,14 @@ const resetPassword = async (
   const session= await mongoose.startSession()
 
   const user = await User.isUserExistsByEmail(payload?.email);
+  const profile= await ProfileModel.findOne({email:payload?.email})
 
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, "This user is not found !");
   }
   // checking if the user is already deleted
-  const isDeleted = user?.isDeleted;
+  const isDeleted = user?.isDeleted || profile?.isDeleted;
+
 
   if (isDeleted) {
     throw new AppError(httpStatus.FORBIDDEN, "This user is deleted !");
@@ -482,7 +484,6 @@ const resetPassword = async (
       password: newHashedPassword,
       passwordChangedAt: new Date(),
   }
-  
   ,{session})
   session.commitTransaction()
   session.endSession()

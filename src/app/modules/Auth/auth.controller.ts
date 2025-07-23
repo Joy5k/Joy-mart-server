@@ -109,7 +109,6 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
   if(!token){
     throw new AppError(httpStatus.UNAUTHORIZED,"Token is required for reset password")
   }
-  console.log(token,req.body)
   const result = await AuthServices.resetPassword(req.body, token);
   sendResponse(res, {
     statusCode: httpStatus.OK,
