@@ -98,6 +98,9 @@ const loginUser = async (payload: TLoginUser) => {
     throw new AppError(httpStatus.FORBIDDEN, "Password do not matched");
 
   //create token and sent to the  client
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "This user is not found!");
+  }
   const jwtPayload = {
     userId: user._id,
     role: user.role,
@@ -122,6 +125,96 @@ const loginUser = async (payload: TLoginUser) => {
     needsPasswordChange: user?.needsPasswordChange,
   };
 };
+
+const loginWithSocial = async (payload: any) => {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+
+
+    // 2. Check if user exists
+    const user = await User.findOne({ email: payload.email }).session(session);
+    let profile = await ProfileModel.findOne({ email: payload.email }).session(session);
+
+    // 3. Create new user if doesn't exist
+    if (!user || !profile) {
+      // Generate a random password for social login users
+      const tempPassword = await bcrypt.hash(
+        Math.random().toString(36).slice(2) + config.jwt_access_secret,
+        Number(config.bcrypt_salt_rounds)
+      );
+
+      // Create profile
+      const createdProfiles = await ProfileModel.create([{
+        firstName: payload.given_name || payload.name.split(' ')[0],
+        lastName: payload.family_name || payload.name.split(' ')[1] || '',
+        email: payload.email,
+        authProvider: payload.provider,
+        isSocialLogin: true
+      }], { session });
+      profile = createdProfiles[0];
+
+      // Create user
+      const createdUsers = await User.create([{
+        email: payload.email,
+        password: tempPassword,
+        role: USER_ROLE.user,
+        authProvider: payload.provider,
+        isSocialLogin: true,
+        needsPasswordChange: true // Force password change on first login
+      }], { session });
+      const newUser = createdUsers[0];
+
+      if (!newUser || !profile) {
+        throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create user');
+      }
+    }
+if(!user){
+  throw new AppError(httpStatus.NOT_FOUND, "This user is not found !");
+}
+    // 4. Generate tokens
+    const jwtPayload = {
+      userId: user._id,
+      role: user.role,
+      email: user.email,
+    };
+
+    const accessToken = createToken(
+      jwtPayload,
+      config.jwt_access_secret as string,
+      config.jwt_access_expires_in as string,
+    );
+
+    const refreshToken = createToken(
+      jwtPayload,
+      config.jwt_refresh_secret as string,
+      config.jwt_refresh_expires_in as string,
+    );
+
+    // 5. Update last login and device info
+    await User.updateOne(
+      { _id: user._id },
+      { 
+        lastLogin: new Date(),
+        $addToSet: { loginDevices: payload.deviceId || '' }
+      }
+    ).session(session);
+
+    await session.commitTransaction();
+
+    return {
+      accessToken,
+      refreshToken,
+      needsPasswordChange: user.needsPasswordChange,
+    };
+  } catch (err: any) {
+    await session.abortTransaction();
+    throw new AppError(err.statusCode || httpStatus.INTERNAL_SERVER_ERROR, err.message);
+  } finally {
+    await session.endSession();
+  }
+};
+
 
 const changePassword = async (
   userData: any,
@@ -429,8 +522,8 @@ const forgetPassword = async (email: string) => {
 };
 
 const resetPassword = async (
-  payload: { email: string; newPassword: string; _id: string },
-  token: string,
+  payload: { email: string; newPassword: string; userId: string,  token: string,
+ },
 ) => {
   const session= await mongoose.startSession()
 
@@ -454,9 +547,9 @@ const resetPassword = async (
   if (userStatus === "blocked") {
     throw new AppError(httpStatus.FORBIDDEN, "This user is blocked ! !");
   }
-  const decoded = verifyToken(token, config.jwt_access_secret as string);
+  const decoded = verifyToken(payload.token, config.jwt_access_secret as string);
 
-  if (payload._id !== decoded.userId) {
+  if (payload.userId !== decoded.userId) {
     throw new AppError(httpStatus.FORBIDDEN, "Your are forbidden");
   }
   const newHashedPassword = await bcrypt.hash(
@@ -482,15 +575,14 @@ const resetPassword = async (
     role:payload.email
   },{
       password: newHashedPassword,
-      passwordChangedAt: new Date(),
   }
   ,{session})
   session.commitTransaction()
   session.endSession()
   } catch (error) {
+    
     throw new AppError(httpStatus.INTERNAL_SERVER_ERROR,"Failed to reset password")
-    session.abortTransaction()
-    session.endSession()
+   
   }
  
 };
@@ -523,6 +615,7 @@ const logoutUser = async (userId: string) => {
 export const AuthServices = {
   registerUserIntoDB,
   loginUser,
+  loginWithSocial,
   changePassword,
   refreshToken,
   forgetPassword,

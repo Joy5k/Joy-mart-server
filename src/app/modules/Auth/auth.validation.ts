@@ -41,12 +41,24 @@ const resetPasswordValidationSchema = z.object({
     }),
   }),
 });
+const socialLoginValidationSchema = z.object({
+  body: z.object({
+    provider: z.enum(['google', 'facebook', 'apple'], {
+      required_error: "Provider is required and must be either 'google', 'facebook' or 'apple'",
+    }),
+    token: z.string({
+      required_error: "Social token is required",
+    }),
+    deviceId: z.string().optional(),
+  }),
+});
+
 
 export const AuthValidation = {
   registerValidationSchema,
   loginValidationSchema,
   changePasswordValidationSchema,
-  
+  socialLoginValidationSchema,
   forgetPasswordValidationSchema,
   resetPasswordValidationSchema,
 };

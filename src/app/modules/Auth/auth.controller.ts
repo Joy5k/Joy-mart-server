@@ -105,11 +105,11 @@ const forgetPassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const resetPassword = catchAsync(async (req: Request, res: Response) => {
-  const token = req.body.userId;
+  const token = req.body.token;
   if(!token){
     throw new AppError(httpStatus.UNAUTHORIZED,"Token is required for reset password")
   }
-  const result = await AuthServices.resetPassword(req.body, token);
+  const result = await AuthServices.resetPassword(req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -118,6 +118,31 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const loginWithSocial = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthServices.loginWithSocial({
+    ...req.body,
+    ipAddress: req.ip // Capture IP address for security
+  });
+
+  const { refreshToken, accessToken } = result;
+
+  res.cookie("refreshToken", refreshToken, {
+    ...cookieOptions,
+    maxAge: 365 * 24 * 60 * 60 * 1000,
+  });
+  
+  res.cookie("authToken", accessToken, {
+    ...cookieOptions,
+    maxAge: 24 * 60 * 60 * 1000,
+  });
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Social login successful!",
+    data: result
+  });
+});
 
 const logoutUser=catchAsync(async (req: Request, res: Response) => {
  
@@ -138,5 +163,6 @@ export const AuthControllers = {
   refreshToken,
   forgetPassword,
   resetPassword,
+  loginWithSocial,
   logoutUser
 };

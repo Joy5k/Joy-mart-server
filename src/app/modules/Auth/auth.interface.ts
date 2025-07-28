@@ -8,3 +8,9 @@ export type TRegisterUser = {
   email: string;
   password: string;
 };
+export type TSocialLogin = {
+  provider: 'google' | 'facebook';
+  token: string;
+  deviceId?: string;
+  ipAddress?: string;
+};

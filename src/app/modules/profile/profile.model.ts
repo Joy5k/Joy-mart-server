@@ -55,6 +55,10 @@ export const ProfileSchema = new Schema<IProfile>({
   isDeleted: {
     type: Boolean,
     default: false,
+  },
+  isSocialLogin:{
+    type:Boolean,
+    default:false
   }
 });
 ProfileSchema.pre("save", async function (next) {

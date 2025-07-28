@@ -13,4 +13,5 @@ export interface IProfile {
   zipCode?: string;
   dateOfBirth?: string;
   isDeleted?: boolean;
+  isSocialLogin?: boolean;
 }

@@ -43,4 +43,9 @@ router.post(
   "/logout",
   AuthControllers.logoutUser,
 );
+router.post(
+  '/social-login',
+  validateRequest(AuthValidation.socialLoginValidationSchema),
+  AuthControllers.loginWithSocial
+);
 export const AuthRoutes = router;
