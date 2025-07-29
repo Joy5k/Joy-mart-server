@@ -24,7 +24,7 @@ export const ProfileSchema = new Schema<IProfile>({
   },
   password: {
     type: String,
-    required: true,
+    default:"123456",
   },
   phoneNumber: {
     type: String,

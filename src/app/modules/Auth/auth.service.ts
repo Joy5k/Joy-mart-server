@@ -139,9 +139,9 @@ const loginWithSocial = async (payload: any) => {
     // 3. Create new user if doesn't exist
     if (!user || !profile) {
       // Generate a random password for social login users
-      const tempPassword = await bcrypt.hash(
-        Math.random().toString(36).slice(2) + config.jwt_access_secret,
-        Number(config.bcrypt_salt_rounds)
+    const tempPassword = await bcrypt.hash(
+      Math.random().toString(36).slice(2) + (config.jwt_access_secret ?? ""),
+      Number(config.bcrypt_salt_rounds)
       );
 
       // Create profile
@@ -149,6 +149,7 @@ const loginWithSocial = async (payload: any) => {
         firstName: payload.given_name || payload.name.split(' ')[0],
         lastName: payload.family_name || payload.name.split(' ')[1] || '',
         email: payload.email,
+        image:payload.image,
         authProvider: payload.provider,
         isSocialLogin: true
       }], { session });
@@ -168,13 +169,37 @@ const loginWithSocial = async (payload: any) => {
       if (!newUser || !profile) {
         throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create user');
       }
+      console.log(createdProfiles,newUser)
+        // 4. Generate tokens
+    const jwtPayload = {
+      userId: newUser._id ,
+      role: newUser.role,
+      email: newUser.email,
+    };
+
+    const accessToken = createToken(
+      jwtPayload,
+      config.jwt_access_secret as string,
+      config.jwt_access_expires_in as string,
+    );
+
+    const refreshToken = createToken(
+      jwtPayload,
+      config.jwt_refresh_secret as string,
+      config.jwt_refresh_expires_in as string,
+    );
+
+    return {
+      accessToken,
+      refreshToken,
+      needsPasswordChange: newUser.needsPasswordChange,
+    };
+
     }
-if(!user){
-  throw new AppError(httpStatus.NOT_FOUND, "This user is not found !");
-}
+
     // 4. Generate tokens
     const jwtPayload = {
-      userId: user._id,
+      userId: user._id ,
       role: user.role,
       email: user.email,
     };

@@ -45,7 +45,6 @@ router.post(
 );
 router.post(
   '/social-login',
-  validateRequest(AuthValidation.socialLoginValidationSchema),
   AuthControllers.loginWithSocial
 );
 export const AuthRoutes = router;
