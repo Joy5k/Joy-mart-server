@@ -1,34 +1,37 @@
-# 🛒 JoyMart Server
+# 🛒 JoyMart Server - Enhanced Documentation
 
-**JoyMart Server** is a backend server built with **Node.js**, **Express**, **TypeScript**, and **MongoDB**. It powers the JoyMart ecommerce platform with features like user authentication, role management (Admin & Seller), product CRUD operations, and profile updates.
+Based on your provided environment file and routes, I'll update the documentation to better reflect your complete system.
 
----
+## 🔧 Tech Stack (Updated)
 
-## 🔧 Tech Stack
-
-- **Node.js**
+- **Node.js** (v18+ recommended)
 - **Express.js**
 - **TypeScript**
-- **MongoDB** with **Mongoose**
+- **MongoDB Atlas** with **Mongoose**
 - **Zod** for schema validation
-- **bcrypt** for password hashing
-- **jsonwebtoken** for authentication
+- **bcryptjs** for password hashing (salt rounds: 10)
+- **jsonwebtoken** for authentication (access & refresh tokens)
 - **dotenv** for environment config
+- **Cloudinary** for media storage
+- **SSLCommerz** for payment processing
+- **Nodemailer** for email services (Gmail SMTP)
+- **Vercel** for CI/CD deployment
 
----
+## ✨ Features (Enhanced)
 
-## ✨ Features
+- ✅ **Multi-role system** (Super Admin, Admin, Seller, Customer)
+- ✅ **JWT authentication** with access (7d) and refresh tokens (365d)
+- ✅ **Product management** with categories and comments
+- ✅ **Booking system** for appointments/services
+- ✅ **Payment integration** with SSLCommerz
+- ✅ **Reporting system** for products
+- ✅ **Push notifications** system
+- ✅ **Subscription service** for newsletters
+- ✅ **Password reset** via email
+- ✅ **Profile management** for all users
+- ✅ **Admin dashboard** with comprehensive controls
 
-- ✅ User registration and login (JWT-based)
-- ✅ Role-based access control (Admin, Seller)
-- ✅ Secure password storage using bcrypt
-- ✅ Add/Edit/Delete products (Seller role)
-- ✅ Profile update (name, contact info)
-- ✅ Admin dashboard (manage users & products)
-
----
-
-## ⚙️ Installation
+## ⚙️ Installation (Updated)
 
 ### 1. Clone the repository
 
@@ -43,87 +46,209 @@ cd joymart-server
 npm install
 ```
 
----
+### 3. Set up environment
 
-## 🔐 Environment Variables
+Create a `.env` file with all required variables (see your provided config).
 
-Create a `.env` file in the root of the project and configure it like this:
+## 🔐 Environment Variables (Complete List)
 
 ```env
-PORT=5000
-DATABASE_URL=mongodb+srv://your_username:your_password@cluster.mongodb.net/joymart?retryWrites=true&w=majority
-JWT_SECRET=your_jwt_secret
-BCRYPT_SALT_ROUNDS=10
-```
+# Environment
+NODE_ENV="production"
 
----
+# Server
+PORT=5000
+
+# Database
+DATABASE_URL=mongodb+srv://username:password@cluster.mongodb.net/dbname?retryWrites=true&w=majority
+
+# Security
+BCRYPT_SALT_ROUNDS=10
+JWT_ACCESS_SECRET=your_access_secret
+JWT_REFRESH_SECRET=your_refresh_secret
+JWT_ACCESS_EXPIRES_IN=7d
+JWT_REFRESH_EXPIRES_IN=365d
+
+# Payment
+STORE_ID=your_sslcommerz_id
+SLCOMMERZ_STORE_PASSWORD=your_sslcommerz_password
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# Email
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_app_specific_password
+RESET_PASS_UI_LINK=https://your-frontend.com/reset-password
+
+# URLs
+FRONTEND_URL=https://your-frontend.com
+BACKEND_URL=http://localhost:5000
+
+# Defaults
+DEFAULT_PASS=12345
+SUPER_ADMIN_PASSWORD=admin_secret_password
+
+# Vercel (for CI/CD)
+VERCEL_PROJECT_ID=your_project_id
+VERCEL_TOKEN=your_vercel_token
+VERCEL_SCOPE=your_vercel_scope
+VERCEL_ORG_ID=your_vercel_org_id
+```
 
 ## 🚀 Running the Server
 
-### For development (with hot reloading):
+### Development mode:
 
 ```bash
 npm run dev
 ```
 
-### For production build:
+### Production build:
 
 ```bash
 npm run build
 npm start
 ```
 
----
-
-## 📁 Project Structure
+## 📁 Project Structure (Detailed)
 
 ```
 src/
 │
 ├── app/
-│   ├── modules/        # All feature modules (user, auth, product, etc.)
-│   ├── middlewares/    # Error handling, auth middleware, etc.
-│   ├── utils/          # Utility functions (e.g. jwt helpers)
-│   ├── config/         # Config files (e.g. database connection)
-│   └── routes/         # Central API routes
+│   ├── config/         # Configuration files
+│   ├── DB/            # Database connection setup
+│   ├── errors/        # Custom error classes
+│   ├── hooks/         # Lifecycle hooks
+│   ├── interface/     # TypeScript interfaces
+│   ├── middlewares/   # Express middlewares
+│   ├── modules/       # Feature modules
+│   │   ├── Admin/     # Admin management
+│   │   ├── Auth/      # Authentication
+│   │   ├── booking/   # Booking system
+│   │   ├── category/  # Product categories
+│   │   ├── payment/   # Payment processing
+│   │   ├── product/   # Product management
+│   │   ├── profile/   # User profiles
+│   │   ├── reportedProduct/ # Product reporting
+│   │   ├── subscribe/ # Newsletter subscriptions
+│   │   ├── user/      # User management
+│   │   └── ...        # Other modules
+│   ├── route/         # Main router
+│   ├── utils/         # Utility functions
+│   └── builder/       # Query builders
 │
-├── index.ts            # Server entry point
-└── app.ts              # Express app setup
+├── index.ts           # Server entry point
+└── app.ts             # Express app setup
 ```
 
----
+## 📡 API Routes (Complete Overview)
 
-## 📡 API Routes Overview
+### Authentication (`/auth`)
+- `POST /login` - User login
+- `POST /refresh-token` - Refresh access token
+- `POST /forgot-password` - Initiate password reset
+- `POST /reset-password` - Complete password reset
 
-| Method | Endpoint             | Description                     | Access     |
-|--------|----------------------|----------------------------------|------------|
-| POST   | `/api/v1/auth/signup`| Register a new user             | Public     |
-| POST   | `/api/v1/auth/login` | Login user                      | Public     |
-| GET    | `/api/v1/users/me`   | Get current user info           | Authenticated |
-| PATCH  | `/api/v1/users/me`   | Update profile info             | Authenticated |
-| POST   | `/api/v1/products`   | Add a new product               | Seller     |
-| GET    | `/api/v1/products`   | Get all products                | Public     |
-| PATCH  | `/api/v1/products/:id`| Update a product               | Seller     |
-| DELETE | `/api/v1/products/:id`| Delete a product               | Seller     |
+### Users (`/users`)
+- `POST /` - Create new user
+- `GET /` - Get all users (Admin only)
+- `GET /:id` - Get user by ID
+- `PATCH /:id` - Update user
+- `DELETE /:id` - Delete user
 
----
+### Admins (`/admins`)
+- `POST /` - Create admin (Super Admin only)
+- `GET /` - Get all admins
+- `GET /:id` - Get admin by ID
+- `PATCH /:id` - Update admin
+- `DELETE /:id` - Delete admin
 
-## 🤝 Contributing
+### Products (`/product`)
+- `POST /` - Create product (Seller/Admin)
+- `GET /` - Get all products
+- `GET /:id` - Get product by ID
+- `PATCH /:id` - Update product
+- `DELETE /:id` - Delete product
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+### Categories (`/categories`)
+- `POST /` - Create category (Admin)
+- `GET /` - Get all categories
+- `GET /:id` - Get category by ID
+- `PATCH /:id` - Update category
+- `DELETE /:id` - Delete category
 
----
+### Bookings (`/booking`)
+- `POST /` - Create booking
+- `GET /` - Get all bookings (Admin) or user's bookings
+- `GET /:id` - Get booking by ID
+- `PATCH /:id` - Update booking status
+- `DELETE /:id` - Cancel booking
+
+### Payments (`/payment`)
+- `POST /init` - Initialize payment
+- `POST /validate` - Validate payment
+- `GET /` - Get payment history
+- `GET /:id` - Get payment details
+
+### Reported Products (`/report`)
+- `POST /` - Report a product
+- `GET /` - Get all reports (Admin)
+- `GET /:id` - Get report details
+- `PATCH /:id` - Update report status
+- `DELETE /:id` - Dismiss report
+
+### Product Comments (`/productComment`)
+- `POST /` - Add comment
+- `GET /` - Get comments for product
+- `PATCH /:id` - Update comment
+- `DELETE /:id` - Delete comment
+
+### Push Notifications (`/push-notifications`)
+- `POST /` - Create notification
+- `GET /` - Get user notifications
+- `PATCH /:id` - Mark as read
+- `DELETE /:id` - Delete notification
+
+### Profiles (`/profiles`)
+- `GET /me` - Get current user profile
+- `PATCH /me` - Update profile
+- `POST /upload` - Upload profile picture
+
+### Subscriptions (`/subscribe`)
+- `POST /` - Subscribe to newsletter
+- `GET /` - Get all subscribers (Admin)
+- `DELETE /:id` - Unsubscribe
+
+## 🔒 Security Considerations
+
+1. **Database**: Uses MongoDB Atlas with SRV connection string
+2. **Passwords**: Hashed with bcrypt (10 salt rounds)
+3. **Tokens**: 
+   - Access token expires in 7 days
+   - Refresh token expires in 365 days
+4. **Sensitive Data**: 
+   - Never commit actual credentials to version control
+   - Use environment variables for all secrets
+5. **Payment**: SSLCommerz integration with store credentials
+
+## 🌐 Deployment
+
+The project is configured for Vercel deployment with:
+
+- Project ID: `prj_aPbxn6K2TwbtZmUehIEUBpFbu9Eg`
+- Team scope: `team_KFfm2zm1vJMU1YW03b75yrEO`
+- Automatic CI/CD pipeline
 
 ## 📝 License
 
-This project is licensed under the **MIT License**.
-
----
+MIT License
 
 ## 💬 Contact
 
 **Developer:** Mehedi Hasan  
 📧 Email: mmehedihasanjoyv@gmail.com  
 🌐 Portfolio: [mehedihasan.dev](https://mehedihasan.dev)
-
----
