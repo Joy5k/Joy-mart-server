@@ -53,13 +53,24 @@ const getMe=catchAsync(async (req: Request, res: Response) => {
 const updateProfile = catchAsync(async (req: Request, res: Response) => {
     const token = req.cookies?.authToken; 
     const {email}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload;  
-      
   const payload = req.body as Partial<IProfile>;
   const result = await ProfileServices.updateProfile(email, payload);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Profile updated successfully!",
+    data: result,
+  });
+});
+
+const becomeSellerOrUser = catchAsync(async (req: Request, res: Response) => {
+  const token = req.cookies?.authToken;
+  const { email } = verifyToken(token, config.jwt_access_secret as string);
+  const result = await ProfileServices.becomeSellerOrUser(email);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User role updated successfully!",
     data: result,
   });
 });
@@ -81,5 +92,6 @@ export const profileContainer = {
   getAllusers,
   getMe,
   updateProfile,
+  becomeSellerOrUser,
   softDeleteProfile
 };

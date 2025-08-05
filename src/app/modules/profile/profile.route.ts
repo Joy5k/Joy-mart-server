@@ -28,6 +28,11 @@ router.put(
   validateRequest(profileValidation.updateProfile),
   profileContainer.updateProfile,
 );
+ router.put(
+  "/become-seller-or-user",
+  auth(USER_ROLE.user, USER_ROLE.seller),
+  profileContainer.becomeSellerOrUser,
+ )
 router.delete(
   "/:id",
   auth(USER_ROLE.user, USER_ROLE.admin, USER_ROLE.superAdmin, USER_ROLE.seller),

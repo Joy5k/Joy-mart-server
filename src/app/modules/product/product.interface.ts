@@ -44,4 +44,5 @@ export interface IProduct {
   };
   isDeleted?: boolean;
   isActive?: boolean; 
+  seller:ObjectId
 }

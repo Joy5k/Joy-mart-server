@@ -19,7 +19,7 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 // CORS configuration
-const allowedOrigins = ['https://joy-mart.vercel.app', 'http://localhost:3000'];
+const allowedOrigins = ['https://joy-mart.vercel.app'];
 
 app.use(
   cors({
@@ -28,7 +28,7 @@ app.use(
       if (!origin) return callback(null, true);
       
       if (allowedOrigins.indexOf(origin) === -1) {
-        const msg = `The CORS policy for this site does not allow access from the specified Origin------------------------: ${origin}`;
+        const msg = `The CORS policy for this site does not allow access from the specified Origin----Developer---Mehedi_hasan: ${origin}`;
         return callback(new Error(msg), false);
       }
       return callback(null, true);

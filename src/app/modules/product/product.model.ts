@@ -32,7 +32,9 @@ const productModelSchema = new Schema({
     free: { type: Boolean, default: false },
     processingTime: { type: String, default: "1-2 business days" },
   },
-  isActive:{type:Boolean,default:true}
+  isActive:{type:Boolean,default:true},
+  isDeleted:{type:Boolean,default:false},
+  seller:{ type: Schema.Types.ObjectId, ref: "User", required: true },
 });
 
 

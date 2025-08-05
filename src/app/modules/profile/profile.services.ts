@@ -160,6 +160,65 @@ const updateProfile = async (email: string, payload: Partial<IProfile>) => {
   }
 };
 
+const becomeSellerOrUser = async (email: string) => {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    
+    // Find user with session
+    const userProfile = await ProfileModel.findOne({ email }).session(session);
+    if (!userProfile) {
+      throw new AppError(httpStatus.NOT_FOUND, "User not found on profile");
+    }
+    
+    const existingUser = await User.findOne({ email }).session(session);
+    if (!existingUser) {
+      throw new AppError(httpStatus.NOT_FOUND, "User not found on user model");
+    }
+    
+    // Determine new role
+    const newRole = existingUser.role === "user" ? "seller" : "user";
+    
+    // Update both models
+    await User.updateOne(
+      { email },
+      { $set: { role: newRole } },
+      { session }
+    );
+    
+    await ProfileModel.updateOne(
+      { email },
+      { $set: { role: newRole } },
+      { session }
+    );
+    
+    await session.commitTransaction();
+    
+    // Return only the necessary data
+    return {
+      success: true,
+      message: `Role updated to ${newRole}`,
+      newRole,
+      email
+    };
+    
+  } catch (error: any) {
+    await session.abortTransaction();
+    console.error("Failed to update user role:", error);
+    
+    if (error instanceof AppError) {
+      throw error;
+    }
+    
+    throw new AppError(
+      httpStatus.INTERNAL_SERVER_ERROR, 
+      error.message || "Failed to update user role"
+    );
+  } finally {
+    await session.endSession();
+  }
+}
+
 const softDeleteProfile = async (email: string) => {
   const session = await mongoose.startSession();
   try {
@@ -219,5 +278,6 @@ export const ProfileServices = {
   getAlluser,
   getMe,
   updateProfile,
+  becomeSellerOrUser,
   softDeleteProfile
 };
