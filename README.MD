@@ -144,96 +144,330 @@ src/
 ├── index.ts           # Server entry point
 └── app.ts             # Express app setup
 ```
+# 🛒 JoyMart Server API Documentation
 
-## 📡 API Routes (Complete Overview)
+## 📑 Table of Contents
+- [Authentication](#-authentication-routes)
+- [User Management](#-user-management)
+- [Admin Management](#-admin-management)
+- [Profile Management](#-profile-management)
+- [Product Management](#-product-management)
+- [Category Management](#-category-management)
+- [Booking System](#-booking-system)
+- [Payment System](#-payment-system)
+- [Reported Products](#-reported-products)
+- [Product Comments](#-product-comments)
+- [Push Notifications](#-push-notifications)
 
-### Authentication (`/auth`)
-- `POST /login` - User login
-- `POST /refresh-token` - Refresh access token
-- `POST /forgot-password` - Initiate password reset
-- `POST /reset-password` - Complete password reset
+---
 
-### Users (`/users`)
-- `POST /` - Create new user
-- `GET /` - Get all users (Admin only)
-- `GET /:id` - Get user by ID
-- `PATCH /:id` - Update user
-- `DELETE /:id` - Delete user
+## 🔐 Authentication Routes
 
-### Admins (`/admins`)
-- `POST /` - Create admin (Super Admin only)
-- `GET /` - Get all admins
-- `GET /:id` - Get admin by ID
-- `PATCH /:id` - Update admin
-- `DELETE /:id` - Delete admin
+### `POST /api/v1/auth/register`
+- Register a new user
+- Required fields: See validation schema
+- Access: Public
 
-### Products (`/product`)
-- `POST /` - Create product (Seller/Admin)
-- `GET /` - Get all products
-- `GET /:id` - Get product by ID
-- `PATCH /:id` - Update product
-- `DELETE /:id` - Delete product
+### `POST /api/v1/auth/login`
+- User login
+- Returns: Access token & refresh token
+- Access: Public
 
-### Categories (`/categories`)
-- `POST /` - Create category (Admin)
-- `GET /` - Get all categories
-- `GET /:id` - Get category by ID
-- `PATCH /:id` - Update category
-- `DELETE /:id` - Delete category
+### `POST /api/v1/auth/change-password`
+- Change user password
+- Required: Old password, new password
+- Access: All authenticated roles
 
-### Bookings (`/booking`)
-- `POST /` - Create booking
-- `GET /` - Get all bookings (Admin) or user's bookings
-- `GET /:id` - Get booking by ID
-- `PATCH /:id` - Update booking status
-- `DELETE /:id` - Cancel booking
+### `POST /api/v1/auth/refresh-token`
+- Get new access token using refresh token
+- Access: Public (with valid refresh token)
 
-### Payments (`/payment`)
-- `POST /init` - Initialize payment
-- `POST /validate` - Validate payment
-- `GET /` - Get payment history
-- `GET /:id` - Get payment details
+### `POST /api/v1/auth/forget-password`
+- Initiate password reset
+- Required: Email
+- Access: Public
 
-### Reported Products (`/report`)
-- `POST /` - Report a product
-- `GET /` - Get all reports (Admin)
-- `GET /:id` - Get report details
-- `PATCH /:id` - Update report status
-- `DELETE /:id` - Dismiss report
+### `POST /api/v1/auth/reset-password`
+- Complete password reset
+- Required: Token, new password
+- Access: Public
 
-### Product Comments (`/productComment`)
-- `POST /` - Add comment
-- `GET /` - Get comments for product
-- `PATCH /:id` - Update comment
-- `DELETE /:id` - Delete comment
+### `POST /api/v1/auth/logout`
+- Invalidate refresh token
+- Access: All authenticated roles
 
-### Push Notifications (`/push-notifications`)
-- `POST /` - Create notification
-- `GET /` - Get user notifications
-- `PATCH /:id` - Mark as read
-- `DELETE /:id` - Delete notification
+### `POST /api/v1/auth/social-login`
+- Login via social providers
+- Access: Public
 
-### Profiles (`/profiles`)
-- `GET /me` - Get current user profile
-- `PATCH /me` - Update profile
-- `POST /upload` - Upload profile picture
+---
 
-### Subscriptions (`/subscribe`)
-- `POST /` - Subscribe to newsletter
-- `GET /` - Get all subscribers (Admin)
-- `DELETE /:id` - Unsubscribe
+## 👥 User Management
 
-## 🔒 Security Considerations
+### `POST /api/v1/users/create`
+- Create new user
+- Access: Public (or restricted based on your config)
 
-1. **Database**: Uses MongoDB Atlas with SRV connection string
-2. **Passwords**: Hashed with bcrypt (10 salt rounds)
-3. **Tokens**: 
-   - Access token expires in 7 days
-   - Refresh token expires in 365 days
-4. **Sensitive Data**: 
-   - Never commit actual credentials to version control
-   - Use environment variables for all secrets
-5. **Payment**: SSLCommerz integration with store credentials
+### `POST /api/v1/users/createUserByAdmin`
+- Create user by admin
+- Access: Admin/SuperAdmin
+
+### `POST /api/v1/users/create-admin`
+- Create new admin
+- Required: Admin privileges
+- Access: Admin/SuperAdmin
+
+### `GET /api/v1/users/me`
+- Get current user profile
+- Access: Admin/SuperAdmin
+
+### `POST /api/v1/users/change-status/:id`
+- Change user status (active/inactive)
+- Access: Admin/SuperAdmin
+
+### `GET /api/v1/users/`
+- Get all users
+- Access: Admin/SuperAdmin
+
+### `PUT /api/v1/users/updateByAdmin/:email`
+- Update user by admin
+- Access: Admin/SuperAdmin
+
+### `DELETE /api/v1/users/deleteBySuperAdmin`
+- Delete user (super admin only)
+- Access: SuperAdmin
+
+---
+
+## 👨‍💼 Admin Management
+
+### `GET /api/v1/admins/`
+- Get all admins
+- Access: Admin/SuperAdmin
+
+### `GET /api/v1/admins/:id`
+- Get single admin details
+- Access: Admin/SuperAdmin
+
+### `PATCH /api/v1/admins/:id`
+- Update admin information
+- Access: Admin/SuperAdmin
+
+### `DELETE /api/v1/admins/:adminId`
+- Delete admin account
+- Access: SuperAdmin
+
+---
+
+## 👤 Profile Management
+
+### `POST /api/v1/profiles/create`
+- Create user profile
+- Access: All roles
+
+### `GET /api/v1/profiles/all`
+- Get all profiles (Admin view)
+- Access: Admin/SuperAdmin
+
+### `GET /api/v1/profiles/me`
+- Get current user profile
+- Access: All authenticated roles
+
+### `PUT /api/v1/profiles/`
+- Update profile
+- Access: All authenticated roles
+
+### `PUT /api/v1/profiles/become-seller-or-user`
+- Switch between seller/user role
+- Access: User/Seller
+
+### `DELETE /api/v1/profiles/:id`
+- Soft delete profile
+- Access: All authenticated roles
+
+---
+
+## 🛍 Product Management
+
+### `POST /api/v1/product/create`
+- Create new product
+- Access: Admin/SuperAdmin/Seller
+
+### `PUT /api/v1/product/update/:productId`
+- Update product
+- Access: Admin/SuperAdmin/Seller
+
+### `PUT /api/v1/product/soft-delete/:productId`
+- Soft delete product
+- Access: Admin/SuperAdmin/Seller
+
+### `DELETE /api/v1/product/delete/:productId`
+- Permanently delete product
+- Access: SuperAdmin
+
+### `GET /api/v1/product/getSingle-product/:productId`
+- Get product by ID
+- Access: Public
+
+### `GET /api/v1/product/get-all-products`
+- Get all products
+- Access: Public
+
+### `GET /api/v1/product/get-all-seller-products`
+- Get products by seller
+- Access: Admin/SuperAdmin/Seller
+
+### `GET /api/v1/product/get-all-products-for-admin`
+- Get all products (Admin view)
+- Access: Admin/SuperAdmin
+
+---
+
+## 🗂 Category Management
+
+### `POST /api/v1/categories/create`
+- Create category
+- Access: Admin/SuperAdmin
+
+### `GET /api/v1/categories/`
+- Get all categories
+- Access: All roles
+
+### `GET /api/v1/categories/get/:id`
+- Get single category
+- Access: Admin/SuperAdmin
+
+### `PUT /api/v1/categories/update/:id`
+- Update category
+- Access: Admin/SuperAdmin
+
+### `DELETE /api/v1/categories/delete/:id`
+- Delete category
+- Access: Admin/SuperAdmin
+
+---
+
+## 📅 Booking System
+
+### `POST /api/v1/booking/`
+- Create booking
+- Access: All roles
+
+### `GET /api/v1/booking/my-bookings`
+- Get user's bookings
+- Access: All roles
+
+### `GET /api/v1/booking/:id`
+- Get booking by ID
+- Access: All roles
+
+### `PATCH /api/v1/booking/:id/status`
+- Update booking status
+- Access: All roles
+
+### `DELETE /api/v1/booking/delete/:bookingId`
+- Delete booking
+- Access: All roles
+
+### `GET /api/v1/booking/`
+- Get all bookings (Admin view)
+- Access: Admin/SuperAdmin
+
+---
+
+## 💳 Payment System
+
+### `POST /api/v1/payment/initiate`
+- Initiate payment
+- Access: All roles
+
+### `POST /api/v1/payment/validate/:transactionId`
+- Validate payment
+- Access: All roles
+
+### `POST /api/v1/payment/ipn`
+- Payment IPN listener
+- Access: All roles
+
+### `GET /api/v1/payment/track/:transactionId`
+- Track order status
+- Access: All roles
+
+### `GET /api/v1/payment/history`
+- Get payment history
+- Access: All roles
+
+---
+
+## ⚠️ Reported Products
+
+### `POST /api/v1/report/create`
+- Report a product
+- Access: All roles
+
+### `GET /api/v1/report/all-by-admin`
+- Get all reports (Admin view)
+- Access: Admin/SuperAdmin
+
+### `GET /api/v1/report/all-my-reported`
+- Get user's reports
+- Access: All roles
+
+### `PUT /api/v1/report/reply/:id`
+- Admin reply to report
+- Access: Admin/SuperAdmin
+
+### `DELETE /api/v1/report/delete/:id`
+- Delete report
+- Access: All roles
+
+### `DELETE /api/v1/report/delete-by-admin/:id`
+- Admin delete report
+- Access: Admin/SuperAdmin
+
+---
+
+## 💬 Product Comments
+
+### `POST /api/v1/productComment/`
+- Create comment
+- Access: All roles
+
+### `GET /api/v1/productComment/:productId`
+- Get comments for product
+- Access: Public
+
+### `DELETE /api/v1/productComment/:commentId`
+- Delete comment
+- Access: All roles
+
+### `PUT /api/v1/productComment/:commentId`
+- Update comment
+- Access: All roles
+
+---
+
+## 🔔 Push Notifications
+
+### `POST /api/v1/push-notifications/submit-token`
+- Submit device token
+- Access: Public
+
+### `POST /api/v1/push-notifications/send-notification`
+- Send notification
+- Access: Admin/SuperAdmin
+
+### `GET /api/v1/push-notifications/my-tokens`
+- Get user's notification tokens
+- Access: All roles
+
+### `DELETE /api/v1/push-notifications/remove-token`
+- Remove device token
+- Access: All roles
+
+---
+
+
 
 ## 🌐 Deployment
 
