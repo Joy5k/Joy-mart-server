@@ -3,6 +3,9 @@ import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { UserServices } from "./user.service";
 import { Request, Response } from "express";
+import config from "../../config";
+import { verifyToken } from "../Auth/auth.utils";
+import { JwtPayload } from "jsonwebtoken";
 
 const createUser = catchAsync(async (req, res) => {
   const { password, student: studentData } = req.body;
@@ -76,7 +79,9 @@ const changeStatus = catchAsync(async (req, res) => {
 });
 
 const getAllUsers = catchAsync(async (req, res) => {
-  const result = await UserServices.getAllUsers(req.query);
+  const token = req.cookies?.authToken; 
+      const {role}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload; 
+  const result = await UserServices.getAllUsers(req.query,role);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -97,8 +102,10 @@ const updateUser = catchAsync(async (req, res) => {
 });
 
 const deleteUserBySuperAdmin = catchAsync(async (req: Request, res: Response) => {
+      const token = req.cookies?.authToken; 
+      const {role}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload; 
   const { email } = req.body;
-  const result = await UserServices.deleteUserBySuperAdmin(email);
+  const result = await UserServices.deleteUserBySuperAdmin(email,role);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -106,7 +113,16 @@ const deleteUserBySuperAdmin = catchAsync(async (req: Request, res: Response) =>
     data: result,
   });
 });
-
+const restoreUserFromDB=catchAsync(async (req: Request, res: Response) =>{
+  const {email}=req.body
+  const result= await UserServices.restoreUser(email)
+   sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User restored successfully",
+    data: result,
+  });
+})
 export const UserControllers = {
    createUser,
   createAdmin,
@@ -115,6 +131,7 @@ export const UserControllers = {
   getAllUsers,
   updateUser,
   createUserByAdmin,
-  deleteUserBySuperAdmin
+  deleteUserBySuperAdmin,
+  restoreUserFromDB
 };
 

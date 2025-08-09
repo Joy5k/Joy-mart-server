@@ -38,10 +38,12 @@ const updateProductInDB=catchAsync(async (req:Request, res:Response) => {
 }
 );
 
-const softDeleteProductFromDB=catchAsync(async(req:Request,res:Response)=>{
+const deleteProductFromDB=catchAsync(async(req:Request,res:Response)=>{
+     const token = req.cookies?.authToken; 
+    const {role}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload; 
   const { productId } = req.params;
 
-  const result = await productServices.softDeleteProduct(productId);
+  const result = await productServices.deleteProduct(productId,role);
   sendResponse(res,{
     success: true,
     statusCode: httpStatus.OK,
@@ -50,18 +52,6 @@ const softDeleteProductFromDB=catchAsync(async(req:Request,res:Response)=>{
   });
 })
 
-const deleteProductFromDB=catchAsync(async (req:Request, res:Response) => {
-  const { productId } = req.params;
-
-  const result = await productServices.deleteProduct(productId);
-  sendResponse(res,{
-    success: true,
-    statusCode: httpStatus.OK,
-    message: "Product deleted successfully",
-    data: result,
-  });
-}
-);
 
 const getProductById=catchAsync(async (req:Request, res:Response) => {
   const { productId } = req.params;
@@ -104,9 +94,11 @@ const getAllSellerProducts=catchAsync(async (req:Request, res:Response) => {
 }
 );
 const getAllProductsForAdmin=catchAsync(async (req:Request, res:Response) => {
+    const token = req.cookies?.authToken; 
+    const {role}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload; 
   const filters = req.query;
 
-  const result = await productServices.getAllProductsForAdmin(filters);
+  const result = await productServices.getAllProductsForAdmin(filters,role);
     sendResponse(res,{
         success: true,
         statusCode: httpStatus.OK,
@@ -119,7 +111,6 @@ const getAllProductsForAdmin=catchAsync(async (req:Request, res:Response) => {
 export const ProductController = {
   createProductIntoDB,
   updateProductInDB,
-  softDeleteProductFromDB,
   deleteProductFromDB,
   getProductById,
   getAllProducts,

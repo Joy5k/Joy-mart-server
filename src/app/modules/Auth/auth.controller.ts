@@ -11,9 +11,10 @@ import AppError from "../../errors/AppError";
 const cookieOptions: import("express").CookieOptions = {
   secure: config.NODE_ENV === "production",
   httpOnly:false,
-  sameSite: "none" as "none",
+  sameSite: "none",
   path: "/",
-  
+  domain: '.vercel.app',
+
 };
 const registerUser = catchAsync(async (req: Request, res: Response) => {
   const result = (await AuthServices.registerUserIntoDB(req.body)) as {

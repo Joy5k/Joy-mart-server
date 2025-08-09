@@ -66,7 +66,7 @@ const getAlluser =async () => {
 
 const getMe = async (email: string) => {
   try {
-    const profile = await ProfileModel.findOne({ email: email,isDeleted:false });
+    const profile = await ProfileModel.findOne({ email });
     if (!profile) {
       throw new AppError(httpStatus.NOT_FOUND, "Profile not found");
     }
@@ -89,9 +89,8 @@ const updateProfile = async (email: string, payload: Partial<IProfile>) => {
     if (!profile) {
       throw new AppError(httpStatus.NOT_FOUND, "Profile not found");
     }
-
     //  Find the associated user
-    const user = await User.findOne({ email: profile.email }).session(session);
+    const user = await User.findOne({ email }).session(session);
     if (!user) {
       throw new AppError(httpStatus.NOT_FOUND, "User not found");
     }

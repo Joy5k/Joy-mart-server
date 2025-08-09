@@ -68,10 +68,21 @@ const getAllProducts = async (query: Record<string, unknown>) => {
     result
   };
 };
-const getAllProductsForAdmin = async (query: Record<string, unknown>) => {
+const getAllProductsForAdmin = async (
+  query: Record<string, unknown>,
+  role: 'admin' | 'superAdmin'
+) => {
   const productSearchableFields = ['title', 'shortDescription', 'description'];
   
-  const baseQuery = ProductModel.find().populate('category');
+  // Base query with common population
+  let baseQuery = ProductModel.find().populate('category');
+
+  // Apply role-based filtering
+  if (role === 'admin') {
+    baseQuery = baseQuery.where('isDeleted').equals(false);
+  } 
+  // superAdmin gets all products (no additional filter)
+
   const productQuery = new QueryBuilder(
     baseQuery,
     query
@@ -84,6 +95,7 @@ const getAllProductsForAdmin = async (query: Record<string, unknown>) => {
 
   const result = await productQuery.modelQuery;
   const meta = await productQuery.countTotal();
+  
   return {
     meta,
     result
@@ -101,23 +113,28 @@ const updateProduct=async (_id:string,productData:IProduct) => {
     return result;
 }
 
-const softDeleteProduct=async(_id:string)=>{
-    const result= await ProductModel.findByIdAndUpdate(_id,{isDeleted:true,isActive:false},{new:true,runValidators:true})
+const deleteProduct=async(_id:string,role:'seller'|'admin'|'superAdmin')=>{
+  if(role==='admin'||'seller'){
+    //soft delete product by seller and admin
+      const result= await ProductModel.findByIdAndUpdate(_id,{isDeleted:true,isActive:false},{new:true,runValidators:true})
     return result
-}
 
-const deleteProduct=async (_id:string) => {
-    const result = await ProductModel.findByIdAndDelete(_id);
+  } else if(role==='superAdmin'){
+    //permanent delete prodcut by super admin
+ const result = await ProductModel.findByIdAndDelete(_id);
     if (!result) {
-        throw new AppError(httpStatus.NOT_FOUND, "Product not found");
+        throw new AppError(httpStatus.NOT_FOUND, "Something went wrong");
     }
     return result;
+  }
+   
 }
+
 
 export const productServices = {
     createProduct,
     updateProduct,
-    softDeleteProduct,
+    
     deleteProduct,
     getProductById,
     getAllProducts,

@@ -139,26 +139,28 @@ const changeStatus = async (id: string, payload: { status: string }) => {
   return result;
 };
 
-const getAllUsers=async(query: Record<string, unknown>)=>{
-   const userSearchableFields = ['firstName', 'lastName', 'email', 'role','status'];
-
-  const userQuery = new QueryBuilder(
-    User.find(),
-    query
-  ) 
+const getAllUsers = async (
+  query: Record<string, unknown>,
+  role: 'admin' | 'superAdmin'
+) => {
+  const userSearchableFields = ['firstName', 'lastName', 'email', 'role', 'status'];
+  
+  const baseQuery = User.find(role === 'admin' ? { isDeleted: false } : {});
+  
+  const userQuery = new QueryBuilder(baseQuery, query)
     .search(userSearchableFields)
     .filter()
     .sort()
     .paginate()
     .fields();
 
-  const result = await userQuery.modelQuery;
-  const meta = await userQuery.countTotal();
-  return {
-    meta,
-    result
-  };
-}
+  const [result, meta] = await Promise.all([
+    userQuery.modelQuery,
+    userQuery.countTotal()
+  ]);
+
+  return { meta, result };
+};
 
 const updateUser= async (email: string, payload: Partial<TUser>) => {
   const session = await mongoose.startSession();
@@ -184,57 +186,75 @@ const updateUser= async (email: string, payload: Partial<TUser>) => {
   }
 };
 
+const restoreUser=async(email:string)=>{
+   const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const userExists= await User.findOne({ email }).session(session);
+    const profileExists=await  ProfileModel.findOne({ email }).session(session)
+   
 
-const deleteUserBySuperAdmin = async (userEmail: string) => {
+    if (!userExists) {
+      throw new AppError(httpStatus.NOT_FOUND, "User not found");
+    } 
+    if(!profileExists){
+            throw new AppError(httpStatus.NOT_FOUND, "Profile not found");
+
+    }
+    await User.updateOne({email},{isDeleted:false},{new:true,session})
+    await ProfileModel.updateOne({email},{isDeleted:false},{new:true,session})
+
+    await session.commitTransaction();
+    return { success: true, message: `User ${email} restored successfully` };
+  } catch (err: any) {
+    await session.abortTransaction();
+    if (err instanceof AppError) throw err;
+    throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, `Failed to restore user ${email}`, err.message);
+  } finally {
+    session.endSession();
+  }
+}
+
+const deleteUserBySuperAdmin = async (email: string, role: 'admin' | 'superAdmin') => {
   const session = await mongoose.startSession();
   try {
-    await session.withTransaction(async () => {
+    session.startTransaction();
+    const userExists= await User.findOne({ email }).session(session);
+    const profileExists=await  ProfileModel.findOne({ email }).session(session)
+   
 
-      // Check existence - note the different session passing syntax
-      const userExists = await User.findOne({ email: userEmail }).session(session);
-      
-      const profileExists = await ProfileModel.findOne({ email: userEmail }).session(session);
+    if (!userExists) {
+      throw new AppError(httpStatus.NOT_FOUND, "User not found");
+    } 
+    if(!profileExists){
+            throw new AppError(httpStatus.NOT_FOUND, "Profile not found");
 
-      if (!userExists || !profileExists) {
-        throw new AppError(httpStatus.NOT_FOUND, "User not found in one or both collections");
-      }
-
-      // Delete operations with proper session attachment
-      const userDeleteResult = await User.deleteOne({ email: userEmail }).session(session);
-
-      const profileDeleteResult = await ProfileModel.deleteOne({ email: userEmail }).session(session);
-
-      if (userDeleteResult.deletedCount === 0 || profileDeleteResult.deletedCount === 0) {
-        throw new Error('One or both deletions reported 0 documents deleted');
-      }
-
-      return { 
-        success: true,
-        userDeleted: userDeleteResult.deletedCount,
-        profileDeleted: profileDeleteResult.deletedCount
-      };
-    });
-
-    return { 
-      success: true, 
-      message: `User ${userEmail} deleted successfully` 
-    };
-  } catch (err:any) {
-    console.error('Deletion error:', err);
-    
-    if (err instanceof AppError) {
-      throw err;
     }
-    
-    throw new AppError(
-      httpStatus.INTERNAL_SERVER_ERROR, 
-      `Failed to delete user ${userEmail}`,
-      err.message
-    );
+
+    if (role === 'admin') {
+      await Promise.all([
+        User.updateOne({ email }, { isDeleted: true }, { session }),
+        ProfileModel.updateOne({ email }, { isDeleted: true }, { session })
+      ]);
+    } else {
+      await Promise.all([
+        User.deleteOne({ email }).session(session),
+        ProfileModel.deleteOne({ email }).session(session)
+      ]);
+    }
+
+    await session.commitTransaction();
+    return { success: true, message: `User ${email} ${role === 'admin' ? 'soft-deleted' : 'permanently deleted'} successfully` };
+  } catch (err: any) {
+    await session.abortTransaction();
+    if (err instanceof AppError) throw err;
+    throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, `Failed to delete user ${email}`, err.message);
   } finally {
-    await session.endSession();
+    session.endSession();
   }
 };
+
+
 export const UserServices = {
   createUserIntoDB,
   createAdminIntoDB,
@@ -243,5 +263,6 @@ export const UserServices = {
   getAllUsers,
   updateUser,
   createUserByAdmin,
-  deleteUserBySuperAdmin
+  deleteUserBySuperAdmin,
+  restoreUser
 };

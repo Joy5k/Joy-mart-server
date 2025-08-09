@@ -71,6 +71,7 @@ const registerUserIntoDB = async (payload: TRegisterUser) => {
   }
 };
 const loginUser = async (payload: TLoginUser) => {
+  console.log(payload)
   // checking if the user is exist
   const user = await User.isUserExistsByEmail(payload.email);
   if (!user?._id) {
@@ -93,10 +94,13 @@ const loginUser = async (payload: TLoginUser) => {
   }
 
   //checking if the password is correct
-
-  if (!(await User.isPasswordMatched(payload?.password, user?.password)))
-    throw new AppError(httpStatus.FORBIDDEN, "Password do not matched");
-
+const isPasswordValid = await User.isPasswordMatched(payload?.password, user?.password);
+if (!isPasswordValid) {
+  console.log('Password comparison failed for user:', user.email);
+  console.log('Input password:', payload.password);
+  console.log('Stored hash:', user.password);
+  throw new AppError(httpStatus.FORBIDDEN, "Incorrect password");
+}
   //create token and sent to the  client
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, "This user is not found!");

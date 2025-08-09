@@ -48,7 +48,7 @@ router.get(
 );
 
 router.put('/updateByAdmin/:email',auth(USER_ROLE.admin, USER_ROLE.superAdmin),UserControllers.updateUser)
-
-router.delete('/deleteBySuperAdmin',auth(USER_ROLE.superAdmin),UserControllers.deleteUserBySuperAdmin)
+router.put('/restoredUser',auth(USER_ROLE.superAdmin),UserControllers.restoreUserFromDB)
+router.delete('/deleteBySuperAdmin',auth(USER_ROLE.admin,USER_ROLE.superAdmin),UserControllers.deleteUserBySuperAdmin)
 
 export const UserRoutes = router;
