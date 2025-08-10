@@ -68,9 +68,11 @@ const getAllProducts = async (query: Record<string, unknown>) => {
     result
   };
 };
+
 const getAllProductsForAdmin = async (
   query: Record<string, unknown>,
-  role: 'admin' | 'superAdmin'
+  role: 'admin' | 'superAdmin'|'seller',
+  sellerId:string
 ) => {
   const productSearchableFields = ['title', 'shortDescription', 'description'];
   
@@ -81,6 +83,9 @@ const getAllProductsForAdmin = async (
   if (role === 'admin') {
     baseQuery = baseQuery.where('isDeleted').equals(false);
   } 
+  if( role==='seller'){
+    baseQuery=baseQuery.where('seller').equals(sellerId).where('isDeleted').equals(false).where('isActive').equals(true)
+  }
   // superAdmin gets all products (no additional filter)
 
   const productQuery = new QueryBuilder(

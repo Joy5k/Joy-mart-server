@@ -34,7 +34,7 @@ const productModelSchema = new Schema({
   },
   isActive:{type:Boolean,default:true},
   isDeleted:{type:Boolean,default:false},
-  seller:{ type: Schema.Types.ObjectId, ref: "User", required: true },
+  seller:{ type: Schema.Types.ObjectId, ref: "User", required: true,default:'689050052cd41336f37b07d3' },
 });
 
 

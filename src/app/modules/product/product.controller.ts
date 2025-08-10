@@ -95,10 +95,10 @@ const getAllSellerProducts=catchAsync(async (req:Request, res:Response) => {
 );
 const getAllProductsForAdmin=catchAsync(async (req:Request, res:Response) => {
     const token = req.cookies?.authToken; 
-    const {role}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload; 
+    const {role,userId}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload; 
   const filters = req.query;
 
-  const result = await productServices.getAllProductsForAdmin(filters,role);
+  const result = await productServices.getAllProductsForAdmin(filters,role,userId);
     sendResponse(res,{
         success: true,
         statusCode: httpStatus.OK,

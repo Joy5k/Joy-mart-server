@@ -71,7 +71,6 @@ const registerUserIntoDB = async (payload: TRegisterUser) => {
   }
 };
 const loginUser = async (payload: TLoginUser) => {
-  console.log(payload)
   // checking if the user is exist
   const user = await User.isUserExistsByEmail(payload.email);
   if (!user?._id) {
