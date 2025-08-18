@@ -30,22 +30,20 @@ const getAllusers=catchAsync(async (req: Request, res: Response) => {
 })
 
 
-const getMe=catchAsync(async (req: Request, res: Response) => {
-  const token= req.cookies?.authToken;
-  const {email}=verifyToken(token,config.jwt_access_secret as string);
-  if (!email) {
-    return sendResponse(res, {
-      statusCode: httpStatus.UNAUTHORIZED,
-      success: false,
-      message: "Unauthorized access",
-      data:null
-    });
-  }
-  const result = await ProfileServices.getMe(email);
+
+const getMe = catchAsync(async (req, res) => {
+
+let token = req.cookies?.authToken; 
+const authToken=req.params.token
+if(!token){
+  token=authToken ? authToken :req.user 
+}
+  const {email,role}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload; 
+  const result = await ProfileServices.getMe(email, role);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Profile retrieved successfully!",
+    message: "user retrieve successfully",
     data: result,
   });
 });

@@ -73,7 +73,7 @@ const registerUserIntoDB = async (payload: TRegisterUser) => {
 const loginUser = async (payload: TLoginUser) => {
   // checking if the user is exist
   const user = await User.isUserExistsByEmail(payload.email);
-  if (!user?._id) {
+  if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, "This user is not found !");
   }
   // checking if the user is already deleted
@@ -95,9 +95,7 @@ const loginUser = async (payload: TLoginUser) => {
   //checking if the password is correct
 const isPasswordValid = await User.isPasswordMatched(payload?.password, user?.password);
 if (!isPasswordValid) {
-  console.log('Password comparison failed for user:', user.email);
-  console.log('Input password:', payload.password);
-  console.log('Stored hash:', user.password);
+
   throw new AppError(httpStatus.FORBIDDEN, "Incorrect password");
 }
   //create token and sent to the  client
@@ -130,114 +128,143 @@ if (!isPasswordValid) {
 };
 
 const loginWithSocial = async (payload: any) => {
+
   const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    session.startTransaction();
+    // 1. Check if user exists
+    const existingUser = await User.findOne({ email: payload.email }).session(session);
+    let existingProfile = await ProfileModel.findOne({ email: payload.email }).session(session);
 
-
-    // 2. Check if user exists
-    const user = await User.findOne({ email: payload.email }).session(session);
-    let profile = await ProfileModel.findOne({ email: payload.email }).session(session);
-
-    // 3. Create new user if doesn't exist
-    if (!user || !profile) {
-      // Generate a random password for social login users
-    const tempPassword = await bcrypt.hash(
-      Math.random().toString(36).slice(2) + (config.jwt_access_secret ?? ""),
-      Number(config.bcrypt_salt_rounds)
+    // 2. Handle new user creation
+    if (!existingUser || !existingProfile) {
+      // Generate temporary password for social login users
+      const tempPassword = await bcrypt.hash(
+        Math.random().toString(36).slice(2) + (config.jwt_access_secret ?? ''),
+        Number(config.bcrypt_salt_rounds)
       );
 
-      // Create profile
-      const createdProfiles = await ProfileModel.create([{
-        firstName: payload.given_name || payload.name.split(' ')[0],
-        lastName: payload.family_name || payload.name.split(' ')[1] || '',
+      // Extract names from payload
+      const firstName = payload.given_name || payload.name?.split(' ')[0] || 'User';
+      const lastName = payload.family_name || payload.name?.split(' ').slice(1).join(' ') || '';
+
+      // Create profile document
+      const [newProfile] = await ProfileModel.create([{
+        firstName,
+        lastName,
         email: payload.email,
-        image:payload.image,
+        image: payload.image,
         authProvider: payload.provider,
         isSocialLogin: true
       }], { session });
-      profile = createdProfiles[0];
 
-      // Create user
-      const createdUsers = await User.create([{
+      if (!newProfile) {
+        throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create profile');
+      }
+
+      // Create user document with profile reference
+      const [newUser] = await User.create([{
         email: payload.email,
         password: tempPassword,
         role: USER_ROLE.user,
         authProvider: payload.provider,
         isSocialLogin: true,
-        needsPasswordChange: true // Force password change on first login
+        needsPasswordChange: true,
+        profile: newProfile._id
       }], { session });
-      const newUser = createdUsers[0];
 
-      if (!newUser || !profile) {
+      if (!newUser) {
         throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create user');
       }
-      console.log(createdProfiles,newUser)
-        // 4. Generate tokens
-    const jwtPayload = {
-      userId: newUser._id ,
-      role: newUser.role,
-      email: newUser.email,
-    };
 
-    const accessToken = createToken(
-      jwtPayload,
-      config.jwt_access_secret as string,
-      config.jwt_access_expires_in as string,
-    );
+      // Update profile with user reference
+      await ProfileModel.updateOne(
+        { _id: newProfile._id },
+        { user: newUser._id },
+        { session }
+      );
 
-    const refreshToken = createToken(
-      jwtPayload,
-      config.jwt_refresh_secret as string,
-      config.jwt_refresh_expires_in as string,
-    );
+      // Generate tokens
+      const jwtPayload = {
+        userId: newUser._id,
+        role: newUser.role,
+        email: newUser.email,
+      };
 
-    return {
-      accessToken,
-      refreshToken,
-      needsPasswordChange: newUser.needsPasswordChange,
-    };
+      const accessToken = createToken(
+        jwtPayload,
+        config.jwt_access_secret as string,
+        config.jwt_access_expires_in as string
+      );
 
+      const refreshToken = createToken(
+        jwtPayload,
+        config.jwt_refresh_secret as string,
+        config.jwt_refresh_expires_in as string
+      );
+
+      // Commit transaction for new user
+      await session.commitTransaction();
+
+      return {
+        accessToken,
+        refreshToken,
+        needsPasswordChange: newUser.needsPasswordChange,
+      };
     }
 
-    // 4. Generate tokens
+    // 3. Handle existing user
     const jwtPayload = {
-      userId: user._id ,
-      role: user.role,
-      email: user.email,
+      userId: existingUser._id,
+      role: existingUser.role,
+      email: existingUser.email,
     };
 
     const accessToken = createToken(
       jwtPayload,
       config.jwt_access_secret as string,
-      config.jwt_access_expires_in as string,
+      config.jwt_access_expires_in as string
     );
 
     const refreshToken = createToken(
       jwtPayload,
       config.jwt_refresh_secret as string,
-      config.jwt_refresh_expires_in as string,
+      config.jwt_refresh_expires_in as string
     );
 
-    // 5. Update last login and device info
+    // Update last login and device info
     await User.updateOne(
-      { _id: user._id },
+      { _id: existingUser._id },
       { 
         lastLogin: new Date(),
         $addToSet: { loginDevices: payload.deviceId || '' }
-      }
-    ).session(session);
+      },
+      { session }
+    );
 
+    // Commit transaction for existing user
     await session.commitTransaction();
+    console.log('Existing user updated and transaction committed');
 
     return {
       accessToken,
       refreshToken,
-      needsPasswordChange: user.needsPasswordChange,
+      needsPasswordChange: existingUser.needsPasswordChange,
     };
-  } catch (err: any) {
+
+  } catch (error: any) {
     await session.abortTransaction();
-    throw new AppError(err.statusCode || httpStatus.INTERNAL_SERVER_ERROR, err.message);
+    console.error('Transaction aborted:', error);
+    
+    if (error instanceof AppError) {
+      throw error;
+    }
+    
+    throw new AppError(
+      error.statusCode || httpStatus.INTERNAL_SERVER_ERROR,
+      error.message || 'Failed to process social login'
+    );
   } finally {
     await session.endSession();
   }

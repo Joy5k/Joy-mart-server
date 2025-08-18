@@ -56,10 +56,14 @@ const createUserByAdmin = catchAsync(async (req, res) => {
 })
 
 const getMe = catchAsync(async (req, res) => {
-  // }
-  const { userId, role } = req.user; //getting the user data after its verified check the module-19.8 if you have any dought
-  const result = await UserServices.getMe(userId, role);
 
+let token = req.cookies?.authToken; 
+const authToken=req.params.token
+if(!token){
+  token=authToken ? authToken :req.user 
+}
+  const {email,role}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload; 
+  const result = await UserServices.getMe(email, role);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

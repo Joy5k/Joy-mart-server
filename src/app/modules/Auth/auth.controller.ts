@@ -9,7 +9,7 @@ import { verifyToken } from "./auth.utils";
 import AppError from "../../errors/AppError";
 
 const cookieOptions: import("express").CookieOptions = {
-  secure: config.NODE_ENV === "production",
+  secure:true,
   httpOnly:false,
   sameSite: "none",
   path: "/",
@@ -54,11 +54,12 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
     maxAge: 365 * 24 * 60 * 60 * 1000, 
   });
   
-  res.cookie("authToken", accessToken, {
-    ...cookieOptions,
-    maxAge: 24 * 60 * 60 * 1000,
-  });
-
+ res.cookie("authToken", accessToken, {
+  ...cookieOptions,
+  sameSite: 'none', // Or 'lax'
+  secure: true,    
+  maxAge: 24 * 60 * 60 * 1000
+});
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -95,6 +96,8 @@ const refreshToken = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
+
 const forgetPassword = catchAsync(async (req: Request, res: Response) => {
   const userEmail = req.body.email;
   const result = await AuthServices.forgetPassword(userEmail);
@@ -120,6 +123,7 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
 });
 
 const loginWithSocial = catchAsync(async (req: Request, res: Response) => {
+  
   const result = await AuthServices.loginWithSocial({
     ...req.body,
     ipAddress: req.ip // Capture IP address for security

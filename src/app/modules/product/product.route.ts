@@ -15,7 +15,7 @@ route.get("/get-all-products", ProductController.getAllProducts);
 route.get("/get-all-seller-products",auth(USER_ROLE.admin, USER_ROLE.superAdmin,USER_ROLE.seller), ProductController.getAllSellerProducts);
 
 route.get("/get-all-products-for-admin",auth(USER_ROLE.seller,USER_ROLE.admin,USER_ROLE.superAdmin), ProductController.getAllProductsForAdmin);
-
+route.put("/restoreProduct",auth(USER_ROLE.superAdmin),ProductController.restoreProductFromDB)
 
 
 export const ProductRoute = route;

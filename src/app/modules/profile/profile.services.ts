@@ -64,19 +64,27 @@ const getAlluser =async () => {
 }
 
 
-const getMe = async (email: string) => {
+const getMe = async (email: string, role: string) => {
+  const session = await mongoose.startSession();
   try {
-    const profile = await ProfileModel.findOne({ email });
-    if (!profile) {
-      throw new AppError(httpStatus.NOT_FOUND, "Profile not found");
-    }
-    return profile;
-  } catch (error: any) {
-    console.error("Failed to get profile:", error);
-    throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, "Failed to get profile");
-  }
-};
+    session.startTransaction()
+     const userExists= await User.findOne({ email ,role}).session(session);
+    const profileExists=await  ProfileModel.findOne({ email,role }).session(session)
+      if (!userExists) {
+      throw new AppError(httpStatus.NOT_FOUND, "User not found");
+    } 
+    if(!profileExists){
+            throw new AppError(httpStatus.NOT_FOUND, "Profile not found");
 
+    }
+    return profileExists
+  } catch (err:any) {
+      await session.abortTransaction();
+    if (err instanceof AppError) throw err;
+    throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, `Failed to retrived user ${email}`, err.message);
+  }
+ 
+};
 
 
 const updateProfile = async (email: string, payload: Partial<IProfile>) => {

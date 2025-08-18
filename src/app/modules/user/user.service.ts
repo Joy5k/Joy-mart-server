@@ -127,11 +127,29 @@ const createUserByAdmin = async (payload: Partial<TUser>) => {
 };
 
 
-const getMe = async (userId: string, role: string) => {
-  const result = await User.findOne({ id: userId, role: role });
+const getMe = async (email: string, role: string) => {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction()
+     const userExists= await User.findOne({ email ,role}).session(session);
+    const profileExists=await  ProfileModel.findOne({ email,role }).session(session)
+      if (!userExists) {
+      throw new AppError(httpStatus.NOT_FOUND, "User not found");
+    } 
+    if(!profileExists){
+            throw new AppError(httpStatus.NOT_FOUND, "Profile not found");
 
-  return result;
+    }
+    return profileExists
+  } catch (err:any) {
+      await session.abortTransaction();
+    if (err instanceof AppError) throw err;
+    throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, `Failed to retrived user ${email}`, err.message);
+  }
+ 
 };
+
+
 const changeStatus = async (id: string, payload: { status: string }) => {
   const result = await User.findByIdAndUpdate(id, payload, {
     new: true,

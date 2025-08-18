@@ -38,6 +38,19 @@ const updateProductInDB=catchAsync(async (req:Request, res:Response) => {
 }
 );
 
+
+const restoreProductFromDB=catchAsync(async(req:Request,res:Response)=>{
+  const {id}=req.body;
+  console.log(id,'the id is')
+  const result= await productServices.restoreProduct(id)
+  sendResponse(res,{
+    success:true,
+    statusCode:httpStatus.OK,
+    message:"Product Restored successfully",
+    data:result
+  })
+})
+
 const deleteProductFromDB=catchAsync(async(req:Request,res:Response)=>{
      const token = req.cookies?.authToken; 
     const {role}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload; 
@@ -113,6 +126,7 @@ export const ProductController = {
   updateProductInDB,
   deleteProductFromDB,
   getProductById,
+  restoreProductFromDB,
   getAllProducts,
   getAllProductsForAdmin,
   getAllSellerProducts

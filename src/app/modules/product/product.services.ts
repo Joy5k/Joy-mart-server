@@ -118,6 +118,19 @@ const updateProduct=async (_id:string,productData:IProduct) => {
     return result;
 }
 
+const restoreProduct=async(_id:string)=>{
+  const isExists=await ProductModel.findById({_id})
+  console.log(isExists)
+  
+  if(!isExists){
+    throw new AppError(httpStatus.NOT_FOUND,"Product not found")
+  }
+  const result= await ProductModel.findByIdAndUpdate(isExists._id,{isDeleted:false,isActive:true},{
+    new:true
+  })
+  return result
+}
+
 const deleteProduct=async(_id:string,role:'seller'|'admin'|'superAdmin')=>{
   if(role==='admin'||'seller'){
     //soft delete product by seller and admin
@@ -139,7 +152,7 @@ const deleteProduct=async(_id:string,role:'seller'|'admin'|'superAdmin')=>{
 export const productServices = {
     createProduct,
     updateProduct,
-    
+    restoreProduct,
     deleteProduct,
     getProductById,
     getAllProducts,
