@@ -30,23 +30,40 @@ const getAllusers=catchAsync(async (req: Request, res: Response) => {
 })
 
 
-
 const getMe = catchAsync(async (req, res) => {
 
-let token = req.cookies?.authToken; 
-const authToken=req.params.token
-if(!token){
-  token=authToken ? authToken :req.user 
-}
-  const {email,role}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload; 
-  const result = await ProfileServices.getMe(email, role);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "user retrieve successfully",
-    data: result,
-  });
+  const finalToken = req.query.token;
+    console.log(finalToken)
+  if (!finalToken) {
+    return sendResponse(res, {
+      statusCode: httpStatus.UNAUTHORIZED,
+      success: false,
+      message: "Authentication token is missing.",
+      data: null,
+    });
+  }
+
+  try {
+    const { email, role } = verifyToken(finalToken as string, config.jwt_access_secret as string) as JwtPayload;
+    const result = await ProfileServices.getMe(email, role);
+    
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "User retrieved successfully",
+      data: result,
+    });
+  } catch (error) {
+    return sendResponse(res, {
+      statusCode: httpStatus.UNAUTHORIZED,
+      success: false,
+      message: "Invalid or expired token.",
+      data: null,
+    });
+  }
 });
+
+
 
 const updateProfile = catchAsync(async (req: Request, res: Response) => {
     const token = req.cookies?.authToken; 

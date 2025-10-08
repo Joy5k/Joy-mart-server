@@ -9,8 +9,15 @@ import catchAsync from "../utils/catchAsync";
 
 const auth = (...requiredRoles: TUserRole[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    // const token = req.headers.authorization 
-    const token = req.cookies.authToken; 
+    const headersToken = req.headers.authorization 
+    let token = req.cookies.authToken; 
+
+    if(!token && headersToken){
+      const parts= headersToken.split(" ")
+      if(parts.length===2 && parts[0]==="authToken"){
+        token=parts[1]
+      }
+    }
 
     // checking if the token is missing
     if (!token) {

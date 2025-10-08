@@ -18,41 +18,27 @@ app.use(cookieParser());
 
 app.use(express.urlencoded({ extended: true }));
 
-// CORS configuration
 const allowedOrigins = [
+  'http://localhost:3000',
   'https://joy-mart.vercel.app',
-  'https://joy-mart-git-main-mehedi-hasan-s-projects.vercel.app',
-  /^https:\/\/joy-mart-.*-mehedi-hasan-s-projects\.vercel\.app$/,
-  /^https:\/\/joy-mart-.*\.vercel\.app$/,
-  'http://localhost:3000'
+  'https://*.vercel.app'
 ];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      
-      // Check if the origin matches any pattern
-      if (allowedOrigins.some(pattern => {
-        return typeof pattern === 'string' 
-          ? origin === pattern
-          : pattern.test(origin);
-      })) {
-        return callback(null, true);
-      }
-      
-      console.error(`CORS blocked for ${origin}`);
-      return callback(new Error('Not allowed by CORS'), false);
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    exposedHeaders: ['Content-Length', 'X-JSON'],
-    maxAge: 86400, // 24 hours
-    preflightContinue: false,
-    optionsSuccessStatus: 204
-  })
-);
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With']
+}));
 
 // Handle preflight requests
 app.options('*', cors());

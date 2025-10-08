@@ -19,7 +19,6 @@ router.get(
 );
 router.get(
   "/me",
-  auth(USER_ROLE.user, USER_ROLE.admin, USER_ROLE.superAdmin, USER_ROLE.seller),
   profileContainer.getMe,
 );
 router.put(

@@ -10,7 +10,7 @@ import AppError from "../../errors/AppError";
 
 const cookieOptions: import("express").CookieOptions = {
   secure:true,
-  httpOnly:false,
+  httpOnly:true,
   sameSite: "none",
   path: "/",
   domain: '.vercel.app',
@@ -51,13 +51,12 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
 
   res.cookie("refreshToken", refreshToken, {
     ...cookieOptions,
+    
     maxAge: 365 * 24 * 60 * 60 * 1000, 
   });
   
  res.cookie("authToken", accessToken, {
   ...cookieOptions,
-  sameSite: 'none', // Or 'lax'
-  secure: true,    
   maxAge: 24 * 60 * 60 * 1000
 });
   sendResponse(res, {
@@ -122,11 +121,12 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+
+// Updated login function
 const loginWithSocial = catchAsync(async (req: Request, res: Response) => {
-  
   const result = await AuthServices.loginWithSocial({
     ...req.body,
-    ipAddress: req.ip // Capture IP address for security
+    ipAddress: req.ip
   });
 
   const { refreshToken, accessToken } = result;
@@ -148,6 +148,8 @@ const loginWithSocial = catchAsync(async (req: Request, res: Response) => {
     data: result
   });
 });
+
+
 
 const logoutUser=catchAsync(async (req: Request, res: Response) => {
  
