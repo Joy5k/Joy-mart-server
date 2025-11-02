@@ -11,7 +11,6 @@ const router = express.Router();
 // User routes
 router.post(
   '/',
-  // auth(USER_ROLE.user,USER_ROLE.superAdmin,USER_ROLE.admin,USER_ROLE.seller),
   validateRequest(bookingValidation.createBookingSchema),
   bookingController.createBooking
 );

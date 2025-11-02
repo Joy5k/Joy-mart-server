@@ -11,7 +11,7 @@ import AppError from "../../errors/AppError";
 const cookieOptions: import("express").CookieOptions = {
   secure:true,
   httpOnly:true,
-  sameSite: "none",
+  sameSite: "lax", 
   path: "/",
   domain: '.vercel.app',
 

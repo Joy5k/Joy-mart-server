@@ -10,9 +10,25 @@ import AppError from '../../errors/AppError';
 
 const createBooking = catchAsync(async (req: Request, res: Response) => {
   const bookingData = req.body;
+  let validToken=''
   const token = req.cookies?.authToken; 
-  const {userId}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload
-  bookingData.userId=userId
+  const userToken=req.body.authToken as string
+  const authToken=req.headers.authorization as string
+  switch (token) {
+    case validToken=token:
+      break;
+    case validToken=authToken.split(' ')[1]:    
+    break;
+    case validToken=userToken:
+
+      break;
+  
+    default:
+      break;
+  }
+  // const {userId}=verifyToken(validToken,config.jwt_access_secret as string) as JwtPayload
+
+  // bookingData.userId=userId
   
   const result = await bookingServices.createBooking(bookingData);
   

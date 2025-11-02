@@ -120,7 +120,6 @@ const updateProduct=async (_id:string,productData:IProduct) => {
 
 const restoreProduct=async(_id:string)=>{
   const isExists=await ProductModel.findById({_id})
-  console.log(isExists)
   
   if(!isExists){
     throw new AppError(httpStatus.NOT_FOUND,"Product not found")
