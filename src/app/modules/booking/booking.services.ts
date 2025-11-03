@@ -113,7 +113,6 @@ const getBookingsByUser = async (userId: string) => {
         model: 'Product'
       })
       .sort({ createdAt: -1 });
-
     if (!bookings || bookings.length === 0) {
       throw new AppError(httpStatus.NOT_FOUND, 'No bookings found for this user');
     }
@@ -126,10 +125,13 @@ const getBookingsByUser = async (userId: string) => {
     if (error instanceof AppError) {
       throw error;
     }
+        console.log(error)
+
     throw new AppError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Failed to retrieve bookings'
     );
+    console.log(error)
   }
 };
 

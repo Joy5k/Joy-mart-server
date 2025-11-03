@@ -69,7 +69,7 @@ const getMe = async (email: string, role: string) => {
   try {
     session.startTransaction()
      const userExists= await User.findOne({ email ,role}).session(session);
-    const profileExists=await  ProfileModel.findOne({ email,role }).session(session)
+    const profileExists=await  ProfileModel.findOne({ email,role }).select("-password").session(session)
       if (!userExists) {
       throw new AppError(httpStatus.NOT_FOUND, "User not found");
     } 

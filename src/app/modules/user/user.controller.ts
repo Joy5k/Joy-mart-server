@@ -59,8 +59,11 @@ const getMe = catchAsync(async (req, res) => {
 
 let token = req.cookies?.authToken; 
 const authToken=req.params.token
+const headersToken=req.headers.authorization
+console.log({token,authToken,headersToken})
+
 if(!token){
-  token=authToken ? authToken :req.user 
+  token=authToken ? authToken : headersToken
 }
   const {email,role}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload; 
   const result = await UserServices.getMe(email, role);

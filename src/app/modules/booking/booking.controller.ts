@@ -26,6 +26,7 @@ const createBooking = catchAsync(async (req: Request, res: Response) => {
     default:
       break;
   }
+  // optional below code, as userId is already being set in frontend while making request
   // const {userId}=verifyToken(validToken,config.jwt_access_secret as string) as JwtPayload
 
   // bookingData.userId=userId
@@ -42,9 +43,10 @@ const createBooking = catchAsync(async (req: Request, res: Response) => {
 
 const getUserBookings = catchAsync(async (req: Request, res: Response) => {
   const token = req.cookies?.authToken; 
-  const {userId}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload;
+  const authToken=req.headers.authorization as string
+  const {userId}=verifyToken(token ? token : authToken.split(' ')[0],config.jwt_access_secret as string) as JwtPayload;  
   const result = await bookingServices.getBookingsByUser(userId);
-  
+  // console.log({token},authToken)
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -56,9 +58,9 @@ const getUserBookings = catchAsync(async (req: Request, res: Response) => {
 const getBooking = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const token = req.cookies?.authToken; 
-  const {userId}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload;  
+  const authToken=req.headers.authorization as string
+  const {userId}=verifyToken(token ? token : authToken.split(' ')[1],config.jwt_access_secret as string) as JwtPayload;  
   const result = await bookingServices.getBookingById(id, userId);
-  
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

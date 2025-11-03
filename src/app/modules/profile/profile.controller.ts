@@ -32,21 +32,21 @@ const getAllusers=catchAsync(async (req: Request, res: Response) => {
 
 const getMe = catchAsync(async (req, res) => {
 
-  const finalToken = req.query.token;
-    console.log(finalToken)
-  if (!finalToken) {
+  const authToken=req.cookies?.authToken
+  const headersToken=req.headers.authorization as string
+  if (!authToken && ! headersToken) {
     return sendResponse(res, {
       statusCode: httpStatus.UNAUTHORIZED,
       success: false,
-      message: "Authentication token is missing.",
+      message: "Authentication token not found.",
       data: null,
     });
   }
 
   try {
-    const { email, role } = verifyToken(finalToken as string, config.jwt_access_secret as string) as JwtPayload;
+    const { email, role } = verifyToken(authToken ? authToken : headersToken as string, config.jwt_access_secret as string) as JwtPayload;
     const result = await ProfileServices.getMe(email, role);
-    
+    console.log(result,email,role)
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
