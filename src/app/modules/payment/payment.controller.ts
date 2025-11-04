@@ -10,7 +10,12 @@ import { JwtPayload } from 'jsonwebtoken';
 
 const initiatePayment = catchAsync(async (req: Request, res: Response) => {
   const { bookingIds, total_amount, currency, customer } = req.body;
-   const token = req.cookies?.authToken; 
+   let token = req.cookies?.authToken; 
+   
+   const headersToken=req.headers.authorization as string
+if(!token && headersToken){
+  token=headersToken
+}
   const {userId}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload;  
   if (!bookingIds || !total_amount || !customer) {
     throw new Error('Missing required fields');
@@ -58,7 +63,12 @@ const paymentIPN = catchAsync(async (req: Request, res: Response) => {
 
 const trackOrder=catchAsync(async (req: Request, res: Response) => {
   const { transactionId } = req.params;
-  const token = req.cookies?.authToken; 
+     let token = req.cookies?.authToken; 
+   
+   const headersToken=req.headers.authorization as string
+if(!token && headersToken){
+  token=headersToken
+}
   const {userId}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload;  
   const result = await PaymentService.trackOrderStatus(transactionId,userId);
 
@@ -71,7 +81,12 @@ const trackOrder=catchAsync(async (req: Request, res: Response) => {
 })
 
 const getAllOrderHistoryFromDB=catchAsync(async (req: Request, res: Response) => {
-  const token = req.cookies?.authToken; 
+     let token = req.cookies?.authToken; 
+   
+   const headersToken=req.headers.authorization as string
+if(!token && headersToken){
+  token=headersToken
+}
   const {userId}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload;  
   const result = await PaymentService.getAllOrderHistory(userId);
 

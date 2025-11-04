@@ -21,8 +21,13 @@ const createReportProduct=catchAsync(async (req: Request, res: Response) => {
 })
 
 const getAllMyReportedProduct=catchAsync(async (req: Request, res: Response) => {
-    const authToken=req.cookies?.authToken; 
-    const {userId}=verifyToken(authToken, config.jwt_access_secret as string) as { userId: string };
+      let token = req.cookies?.authToken; 
+   
+   const headersToken=req.headers.authorization as string
+if(!token && headersToken){
+  token=headersToken
+}
+    const {userId}=verifyToken(token, config.jwt_access_secret as string) as { userId: string };
     const result = await ReportedProductServices.getAllMyReportedProduct(userId, req.query);
     sendResponse(res,{
         statusCode:httpStatus.OK,

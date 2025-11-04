@@ -12,12 +12,8 @@ const auth = (...requiredRoles: TUserRole[]) => {
     const headersToken = req.headers.authorization 
     let token = req.cookies.authToken; 
     if(!token && headersToken){
-      const parts= headersToken.split(" ")
-      if(parts.length===2 && parts[0]==="authToken"){
-        token=parts[1]
-      }
+     token=headersToken
     }
-
     // checking if the token is missing
     if (!token) {
       throw new AppError(httpStatus.UNAUTHORIZED, "You are not authorized! Please login first(auth-mid).");

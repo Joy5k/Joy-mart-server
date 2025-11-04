@@ -7,6 +7,7 @@ import catchAsync from "../../utils/catchAsync";
 import { verifyToken } from "../Auth/auth.utils";
 import config from "../../config";
 import { JwtPayload } from "jsonwebtoken";
+import AppError from "../../errors/AppError";
 
 const createProfileIntoDB = async (req: Request, res: Response) => {
   const payload = req.body as IProfile;
@@ -32,21 +33,17 @@ const getAllusers=catchAsync(async (req: Request, res: Response) => {
 
 const getMe = catchAsync(async (req, res) => {
 
-  const authToken=req.cookies?.authToken
+  let authToken=req.cookies?.authToken
   const headersToken=req.headers.authorization as string
   if (!authToken && ! headersToken) {
-    return sendResponse(res, {
-      statusCode: httpStatus.UNAUTHORIZED,
-      success: false,
-      message: "Authentication token not found.",
-      data: null,
-    });
+    throw new AppError(httpStatus.UNAUTHORIZED, "User is not authenticated.")
   }
-
+  if(!authToken && headersToken){
+    authToken=headersToken
+  }
   try {
-    const { email, role } = verifyToken(authToken ? authToken : headersToken as string, config.jwt_access_secret as string) as JwtPayload;
+    const { email, role } = verifyToken(authToken, config.jwt_access_secret as string) as JwtPayload;
     const result = await ProfileServices.getMe(email, role);
-    console.log(result,email,role)
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -66,8 +63,12 @@ const getMe = catchAsync(async (req, res) => {
 
 
 const updateProfile = catchAsync(async (req: Request, res: Response) => {
-    const token = req.cookies?.authToken; 
-    const {email}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload;  
+     let authToken=req.cookies?.authToken
+  const headersToken=req.headers.authorization as string
+   if(!authToken && headersToken){
+    authToken=headersToken
+  }
+    const {email}=verifyToken(authToken,config.jwt_access_secret as string) as JwtPayload;  
   const payload = req.body as Partial<IProfile>;
   const result = await ProfileServices.updateProfile(email, payload);
   sendResponse(res, {

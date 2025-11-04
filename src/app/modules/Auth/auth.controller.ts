@@ -11,7 +11,7 @@ import AppError from "../../errors/AppError";
 const cookieOptions: import("express").CookieOptions = {
   secure:true,
   httpOnly:true,
-  sameSite: "lax", 
+  sameSite: "none", 
   path: "/",
   domain: '.vercel.app',
 
@@ -83,7 +83,8 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
 
 const refreshToken = catchAsync(async (req: Request, res: Response) => {
   const { refreshToken } = req.cookies;
-  const result = await AuthServices.refreshToken(refreshToken);
+  const refreshTokenFromHeaders=req.headers.authorization as string
+  const result = await AuthServices.refreshToken(refreshToken ? refreshToken : refreshTokenFromHeaders);
   res.cookie("authToken", result.accessToken, {
     ...cookieOptions,
     maxAge: 24 * 60 * 60 * 1000,
