@@ -10,7 +10,7 @@ import { JwtPayload } from 'jsonwebtoken';
 
 // Initiate Payment
 const initiatePayment = catchAsync(async (req: Request, res: Response) => {
-  const { bookingIds, total_amount, currency, customer,productQuantity } = req.body;
+  const { bookingIds, total_amount, currency, customer,productQuantity,productIds } = req.body;
    let token = req.cookies?.authToken; 
    
    const headersToken=req.headers.authorization as string
@@ -25,7 +25,8 @@ if(!token && headersToken){
   const result = await PaymentService.initiatePayment({
 
     userId,
-    productIds: bookingIds, 
+    productIds, 
+    bookingIds,
     productQuantity,
     total_amount,
     currency,

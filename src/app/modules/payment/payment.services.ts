@@ -73,9 +73,9 @@ const initiatePayment = async (paymentData: IPaymentData) => {
     total_amount: paymentData.total_amount,
     currency: 'BDT',
     tran_id: transactionId,
-    success_url: `${config.backend_url}/payment/success/${transactionId}`,
-    fail_url: `${config.backend_url}/payment/fail/${transactionId}`,
-    cancel_url: `${config.backend_url}/payment/cancel/${transactionId}`,
+    success_url: `${config.frontend_url}/payment/success/${transactionId}`,
+    fail_url: `${config.frontend_url}/payment/fail/${transactionId}`,
+    cancel_url: `${config.frontend_url}/payment/cancel/${transactionId}`,
     cus_name: paymentData.customer.name,
     cus_email: paymentData.customer.email,
     cus_phone: paymentData.customer.phone || '01601588531',
@@ -96,6 +96,7 @@ try {
   // Validate stock for each product
   for (const item of transformedProductIds) {
     const product = products.find(p => p._id.toString() === item.productId.toString());
+    console.log({paymentData,product})
     if (!product) {
       throw new AppError(httpStatus.BAD_REQUEST, `Product not found: ${item.productId}`);
     }
@@ -111,7 +112,9 @@ try {
   const apiResponse = await sslcz.init(sslcommerzData);
   
   if (!apiResponse?.GatewayPageURL) {
-    throw new Error('Payment initiation failed');
+      await session.abortTransaction();
+
+    throw new Error('Payment initiation failed at SSLCommerz');
   }
 
   // Create payment record
@@ -135,7 +138,7 @@ try {
       updateData.$set = { 
         isActive: false, 
         isDeleted: true,
-        stock: 0 // Ensure stock doesn't go negative
+        stock: 0 //
       };
     }
     
@@ -165,7 +168,7 @@ try {
     throw error;
   }
   
-  throw new AppError(httpStatus.BAD_REQUEST, 'Payment initiation failed');
+  throw new AppError(httpStatus.BAD_REQUEST, 'Something went wrong during payment initiation');
 } finally {
   session.endSession();
 }

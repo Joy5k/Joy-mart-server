@@ -12,6 +12,7 @@ export interface IPaymentCustomer {
 }
 
 export interface IPaymentData {
+  bookingIds:string[];
   productIds: [{productId:string,productQuantity:number}];
   userId: string; 
   total_amount: number;
