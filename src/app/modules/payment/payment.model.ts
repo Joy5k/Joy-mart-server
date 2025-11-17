@@ -6,11 +6,14 @@ const paymentSchema= new Schema({
         ref: 'User',
         required: true
     },
-   productIds: [{  
+   productIds: [
+    {productId:{  
         type: Schema.Types.ObjectId, 
         ref: 'Product', 
         required: true 
-    }],
+    },
+    productQuantity:{type:Number,require:true}}
+  ],
     orderId: { 
       type: String,
       index: true,

@@ -21,7 +21,10 @@ app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = [
   'http://localhost:3000',
   'https://joy-mart.vercel.app',
-  'https://*.vercel.app'
+  'https://*.vercel.app',
+  'https://sandbox.sslcommerz.com',
+  'https://securepay.sslcommerz.com',
+  'https://joy-mart-server.vercel.app'
 ];
 
 app.use(cors({

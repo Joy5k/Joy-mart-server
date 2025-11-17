@@ -8,7 +8,11 @@ import config from "../../config";
 import { JwtPayload } from "jsonwebtoken";
 
 const createProductIntoDB=catchAsync(async (req:Request, res:Response) => {
-    const token = req.cookies?.authToken; 
+    let token = req.cookies?.authToken; 
+    const headersToken=req.headers.authorization as string
+if(!token && headersToken){
+  token=headersToken
+}
     const {userId}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload; 
     const productData = req.body;
 
@@ -41,7 +45,6 @@ const updateProductInDB=catchAsync(async (req:Request, res:Response) => {
 
 const restoreProductFromDB=catchAsync(async(req:Request,res:Response)=>{
   const {id}=req.body;
-  console.log(id,'the id is')
   const result= await productServices.restoreProduct(id)
   sendResponse(res,{
     success:true,
@@ -52,7 +55,11 @@ const restoreProductFromDB=catchAsync(async(req:Request,res:Response)=>{
 })
 
 const deleteProductFromDB=catchAsync(async(req:Request,res:Response)=>{
-     const token = req.cookies?.authToken; 
+        let token = req.cookies?.authToken; 
+    const headersToken=req.headers.authorization as string
+if(!token && headersToken){
+  token=headersToken
+}
     const {role}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload; 
   const { productId } = req.params;
 
@@ -80,6 +87,7 @@ const getProductById=catchAsync(async (req:Request, res:Response) => {
 );
 
 const getAllProducts=catchAsync(async (req:Request, res:Response) => {
+  
   const filters = req.query;
 
   const result = await productServices.getAllProducts(filters);
@@ -107,7 +115,11 @@ const getAllSellerProducts=catchAsync(async (req:Request, res:Response) => {
 }
 );
 const getAllProductsForAdmin=catchAsync(async (req:Request, res:Response) => {
-    const token = req.cookies?.authToken; 
+    let token = req.cookies?.authToken; 
+    const headersToken=req.headers.authorization as string
+if(!token && headersToken){
+  token=headersToken
+}
     const {role,userId}=verifyToken(token,config.jwt_access_secret as string) as JwtPayload; 
   const filters = req.query;
 

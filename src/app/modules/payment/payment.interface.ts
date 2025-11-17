@@ -12,12 +12,13 @@ export interface IPaymentCustomer {
 }
 
 export interface IPaymentData {
-  productIds: string[];
+  productIds: [{productId:string,productQuantity:number}];
   userId: string; 
   total_amount: number;
   currency?: string;
   customer: IPaymentCustomer;
   paymentMethod?: 'online' | 'cod' | 'wallet';
+  productQuantity?: number;
   shippingAddress?: {
     street: string;
     city: string;
